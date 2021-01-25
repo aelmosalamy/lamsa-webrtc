@@ -1,4 +1,4 @@
-const PORT = 8080
+const PORT = 3000
 
 // Utilities
 const nanoid = require('nanoid').nanoid
@@ -19,6 +19,10 @@ const channels = {}
 // Listen to HTTP requests
 server.listen(PORT, () => {
   console.log(`Listening at ${PORT}...`)
+})
+
+server.on('error', error => {
+  console.log(error)
 })
 
 // Manage HTTP requests using Express
