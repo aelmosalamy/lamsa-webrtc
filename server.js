@@ -1,4 +1,4 @@
-const PORT = 80
+const PORT = 8080
 
 // Utilities
 const nanoid = require('nanoid').nanoid
