@@ -17,7 +17,7 @@ const sockets = {}
 const channels = {}
 
 // Listen to HTTP requests
-server.listen(PORT, () => {
+server.listen(PORT, 'https://aemo-webrtc.herokuapp.com', () => {
   console.log(`Listening at ${PORT}...`)
 })
 
