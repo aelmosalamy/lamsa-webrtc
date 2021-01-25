@@ -30,6 +30,10 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/client.html')
 })
 
+wss.on('error', error => {
+  console.log(error)
+})
+
 // Manage WebSocket connections
 wss.on('connection', socket => {
   socket.id = nanoid()
