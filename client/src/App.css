@@ -1,4 +1,40 @@
-.screen {
+.App {
 	width: 100vw;
-	height: 100vh;
+	min-height: 100vh;
+	padding: 0;
+}
+
+.App-background {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-image: url('./wallpaper.jpg');
+	background-size: cover;
+	/* filter: blur(2px); */
+}
+
+.App-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: linear-gradient(60deg, #005da5, #c9e100);
+	background-size: 400% 400%;
+	animation: gradient-animation 15s ease infinite;
+	opacity: 0.5;
+}
+
+@keyframes gradient-animation {
+	0% {
+		background-position: 0% 51%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0% 51%;
+	}
 }

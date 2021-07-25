@@ -1,63 +1,121 @@
-import React from 'react'
-import { Card, Button, Form, FormControl, InputGroup, Row, Col } from 'react-bootstrap'
-import { useHistory } from 'react-router'
+import React, { useState, useEffect } from 'react';
+import {
+	Card,
+	Alert,
+	Button,
+	Form,
+	FormControl,
+	InputGroup,
+	Row,
+	Col,
+} from 'react-bootstrap';
+import { useHistory } from 'react-router-dom';
 
-import './styles.css'
-import image from './wallpaper.jpg'
+import meetingIdUtils from '../../utils/meetingIdUtils';
+import UserDataModal from './components/UserDataModal';
+
+import './styles.css';
 
 const HomeScreen = () => {
-	let history = useHistory()
+	const [showModal, setShowModal] = useState(false);
+	const [isNewMeeting, setIsNewMeeting] = useState(true);
+	const [newMeetingId, setNewMeetingId] = useState(undefined);
+	const [invalidMeetingId, setInvalidMeetingId] = useState(undefined);
+	const [joinMeetingId, setJoinMeetingId] = useState(undefined);
 
-	const handleNewMeetingButtonClick = e => {
-		history.push('/hello')
-	}
+	const history = useHistory();
+
+	const handleSubmitModal = userData => {
+		sessionStorage.setItem('userData', JSON.stringify(userData));
+		// Create and move to new room
+		history.push(`/${isNewMeeting ? newMeetingId : joinMeetingId}`);
+	};
+
+	const handleNewMeetingClick = () => {
+		setIsNewMeeting(true);
+		setNewMeetingId(meetingIdUtils.generateId());
+
+		setShowModal(true);
+	};
+
+	const handleJoinMeetingSubmit = async e => {
+		e.preventDefault();
+		const data = await fetch(
+			`http://localhost:5000/meetings/${joinMeetingId}/exists`
+		);
+		if (meetingIdUtils.isValid(joinMeetingId) && (await data.json())) {
+			setInvalidMeetingId(false);
+			setIsNewMeeting(false);
+			setShowModal(true);
+		} else {
+			setInvalidMeetingId(true);
+		}
+	};
+
+	useEffect(() => {
+		if (joinMeetingId)
+			setInvalidMeetingId(!meetingIdUtils.isValid(joinMeetingId));
+	}, [joinMeetingId]);
 
 	return (
-		<div className='HomeScreen screen'>
-			<img className='HomeScreen__background' src={image} alt='Wallpaper' />
-			<div className='HomeScreen__overlay'></div>
-			<div className='HomeScreen__body'>
-				<Card id='HomeScreen__card' style={{}}>
-					<Card.Body>
-						<Card.Title>Welcome to WebRTC Meet!</Card.Title>
-						<Card.Subtitle className='mb-4 text-muted'>
-							We provide peer-to-peer video and audio chat.
-						</Card.Subtitle>
-						<Button
-							onClick={handleNewMeetingButtonClick}
-							variant='primary'
-							className='w-100 w-md-auto'
-							href='#'
-						>
-							Create a new meeting
-						</Button>
-						<p className='text-secondary text-center my-4'>
-							or provide a <span className='fw-bold'>Room ID</span> below
-						</p>
-						<Form id='room-id-form'>
-							{/* <InputGroup className='mb-3'> */}
-							<Row>
-								<Col xs={12} sm='auto'>
-									<Form.Control
-										id='room-id'
-										maxLength='8'
-										placeholder='Room ID'
-										aria-describedby='room-id-text'
-									/>
-								</Col>
-								<Col xs={12} sm='auto' className='mt-2 mt-sm-0'>
-									<Button variant='primary' className='w-100'>
-										Enter room
-									</Button>
-								</Col>
-								{/* </InputGroup> */}
-							</Row>
-						</Form>
-					</Card.Body>
-				</Card>
-			</div>
+		<div className="HomeScreen container">
+			<UserDataModal
+				meeting_id={isNewMeeting ? newMeetingId : joinMeetingId}
+				show={showModal ? showModal : undefined}
+				handleClose={() => setShowModal(false)}
+				handleSubmit={handleSubmitModal}
+			/>
+			<Card id="HomeScreen__card" style={{}}>
+				<Card.Body>
+					<Card.Title>Welcome to WebRTC Meet!</Card.Title>
+					<Card.Subtitle className="mb-4 text-muted">
+						We provide peer-to-peer video and audio chat.
+					</Card.Subtitle>
+					<Button
+						onClick={handleNewMeetingClick}
+						variant="primary"
+						className="w-100 w-md-auto"
+						href="#"
+					>
+						Create a new meeting
+					</Button>
+					<p className="text-secondary text-center my-4">
+						or provide a <span className="fw-bold">Meeting ID</span>{' '}
+						below
+					</p>
+					<Form onSubmit={handleJoinMeetingSubmit}>
+						{/* <InputGroup className='mb-3'> */}
+						<Row>
+							<Col xs={12} sm="auto">
+								<Form.Control
+									tabIndex={0}
+									placeholder="Meeting ID"
+									isValid={invalidMeetingId === false}
+									isInvalid={invalidMeetingId === true}
+									onChange={e => {
+										setJoinMeetingId(e.target.value);
+									}}
+								/>
+								<Form.Control.Feedback type="invalid">
+									Meeting ID is invalid or doesn't exist
+								</Form.Control.Feedback>
+							</Col>
+							<Col xs={12} sm="auto" className="mt-2 mt-sm-0">
+								<Button
+									onClick={handleJoinMeetingSubmit}
+									variant="primary"
+									className="w-100"
+								>
+									Join meeting
+								</Button>
+							</Col>
+							{/* </InputGroup> */}
+						</Row>
+					</Form>
+				</Card.Body>
+			</Card>
 		</div>
-	)
-}
+	);
+};
 
-export default HomeScreen
+export default HomeScreen;

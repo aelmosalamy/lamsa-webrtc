@@ -2,7 +2,7 @@
 const SIGNALING_SERVER = location.origin.replace(/^http/, 'ws')
 const USE_AUDIO = true
 const USE_VIDEO = true
-const DEFAULT_CHANNEL = "adham's-global-channel"
+const DEFAULT_CHANNEL = "adhams-global-channel"
 const MUTE_AUDIO_BY_DEFAULT = false
 
 const ICE_SERVERS = [{ url: 'stun:stun.l.google.com:19302' }]
