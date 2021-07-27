@@ -13,7 +13,7 @@ const io = require('socket.io')(httpServer, {
 });
 const cors = require('cors');
 
-const { logAllSockets, logActualRooms } = require('./utils/socketLogging')
+const { logAllSockets, logActualRooms } = require('./utils/socketLogging');
 
 const indexRouter = require('./routers/indexRouter');
 
@@ -27,7 +27,8 @@ app.use(
 );
 app.use('/', indexRouter);
 
-// Room events (through adapter)
+// Room events (through adapter), we will use these just for logging, since we
+// need to pass some data
 io.sockets.adapter.on('create-room', room => {
 	console.log(`Room [${room}] has been created`.bgMagenta.yellow);
 });
@@ -38,186 +39,151 @@ io.sockets.adapter.on('delete-room', room => {
 
 io.sockets.adapter.on('join-room', (room, id) => {
 	console.log(`socket [${id}] has joined room [${room}]`.bgMagenta.yellow);
-
-	io.to(room).emit('someone entered', id);
+	// Tell everyone in the room that someone joined them & give some data about him as well
+	const socket = Object.fromEntries(io.sockets.sockets.entries())[id];
+	io.to(room).except(id).emit('someone joined', id, socket.data);
 });
 
 io.sockets.adapter.on('leave-room', (room, id) => {
-	console.log(`socket [${id}] left room [${room}]`.bgMagenta.yellow);
-
-	io.to(room).emit('someone left', id);
+	console.log(`socket [${id}] has left room [${room}]`.bgMagenta.yellow);
+	// Tell the rest of people in the room that someone left
+	io.to(room).except(id).emit('someone left', id);
 });
 
 // Manage WebSocket connections
-io.on('connection', async socket => {
-	socket.on('disconnect', async () => {
+io.on('connection', socket => {
+	console.log(`[${socket.id}] has connected.`.green);
+	logAllSockets(io);
+
+	socket.on('disconnect', () => {
 		console.log(`[${socket.id}] has disconnected.`.red);
-    logAllSockets(io)
-		/*
-		for (var channel in socket.channels) {
-			part(channel);
-		}
-		delete sockets[socket.id];
-		console.log(
-			`${Object.keys(sockets).length} ${Object.keys(sockets)}`.yellow
-		);
-    */
+		logAllSockets(io);
 	});
 
-	socket.on('join meeting', (meeting_id, ack) => {
+	socket.on('join meeting', async (meeting_id, user_data, ack) => {
+		socket.data = user_data;
+
 		console.log(
-			`[${socket.id}] wants to join meeting [${meeting_id}]`.magenta
+			`[${socket.id}] wants to join room [${meeting_id}]`.magenta
 		);
-		// Make the socket join the room with the provided meeting id
+
+		// Make sockets in meeting add the incoming socket (who made this event) as
+		// peer
+		const sockets_already_in_meeting = await io
+			.in(meeting_id)
+			.fetchSockets();
+		// Think of peering as a two-dimensional process, each node (in this case a
+		// socket) has to add the opposite node as a peer.
+		//
+		// Tell sockets in room to add the new joinee (me) as peer
+		socket.to(meeting_id).emit('webrtc:addPeer', socket.id, false);
+		console.log(
+			`Told sockets in [${meeting_id}] to add [${socket.id}] as peer`
+				.bgBlue.cyan
+		);
+		// Tell new joinee (me) to add people in room as peers
+		for (let s of sockets_already_in_meeting) {
+			io.to(socket.id).emit('webrtc:addPeer', s.id, true);
+			console.log(
+				`Told socket [${socket.id}] to add socket [${s.id}] of [${meeting_id}] as peer`
+					.bgBlue.cyan
+			);
+		}
+
+		// Make the socket join the room
 		socket.join(meeting_id);
-    logActualRooms(io)
+		logActualRooms(io);
 		// Acknowledgement is run on the client-side
 		ack();
 	});
 
-	/*
-	socket.on('message', message => {
-		message = JSON.parse(message);
-		switch (message.type) {
-			case undefined || false:
-				console.log('No message type provided by client -', message);
-				break;
-			case 'join':
-				console.log(
-					`${socket.id} wants to join channel ${
-						message.channel_id
-					}, he sent the following userData: ${JSON.stringify(
-						message.userData
-					)}`.blue
-				);
-				var channel = message.channel_id;
-				var userData = message.userData;
+	socket.on('leave meeting', async (meeting_id, user_data, ack) => {
+		console.log(
+			`[${socket.id}] wants to leave room [${meeting_id}]`.magenta
+		);
 
-				if (channel in socket.channels) {
-					console.log(
-						`[${socket.id}] ERROR: already exists in ${channel}`.red
-					);
-					return;
-				}
+		// Tear peers
+		console.log(`Tearing down peers associated with [${socket.id}]`);
 
-				if (!(channel in app.locals.channels)) {
-					app.locals.channels[channel] = {};
-				}
+		const sockets_left_in_meeting = await io.in(meeting_id).fetchSockets();
 
-				for (id in app.locals.channels[channel]) {
-					// Connect newly created peer to existing peers
-					app.locals.channels[channel][id].send(
-						JSON.stringify({
-							type: 'addPeer',
-							config: {
-								peer_id: socket.id,
-								should_create_offer: false,
-							},
-						})
-					);
-					// Connect existing peers to our newly created peer
-					socket.send(
-						JSON.stringify({
-							type: 'addPeer',
-							config: { peer_id: id, should_create_offer: true },
-						})
-					);
-				}
+		for (let s of sockets_left_in_meeting) {
+			io.to(s.id).emit('webrtc:removePeer', socket.id);
 
-				app.locals.channels[channel][socket.id] = socket;
-				socket.channels[channel] = channel;
+			io.to(socket.id).emit('webrtc:removePeer', s.id);
+		}
 
-				console.log(
-					`${Object.keys(sockets).length} ${Object.keys(sockets)}`
-						.yellow
-				);
+		// Make the socket leave the room
+		socket.leave(meeting_id);
+		logActualRooms(io);
 
-				// 'join' handler break
-				break;
-			case 'part':
-				part(message.channel_id);
-				// 'part' handler break
-				break;
-			case 'relayICECandidate':
-				var peer_id = message.peer_id;
-				var ice_candidate = message.ice_candidate;
-				console.log(
-					`[${socket.id}] relaying ICE candidate to [${peer_id}]`
-						.underline.blue
-					// ice_candidate
-				);
+		// Acknowledgement is run on the client-side
+		ack();
+	});
 
-				if (peer_id in sockets) {
-					sockets[peer_id].send(
-						JSON.stringify({
-							type: 'iceCandidate',
-							peer_id: socket.id,
-							ice_candidate,
-						})
-					);
-				}
-				// 'relayICECandidate' handler break
-				break;
-			case 'relaySessionDescription':
-				var peer_id = message.peer_id;
-				var session_description = message.session_description;
-				console.log(
-					`[${socket.id}] relaying session description to [${peer_id}]`
-						.underline.blue
-					// session_description
-				);
+	socket.on('get others data', async (meeting_id, ack) => {
+		try {
+			let others = await io
+				.in(meeting_id)
+				.except(socket.id)
+				.fetchSockets();
 
-				if (peer_id in sockets) {
-					sockets[peer_id].send(
-						JSON.stringify({
-							type: 'sessionDescription',
-							peer_id: socket.id,
-							session_description: session_description,
-						})
-					);
-				}
-				// 'relaySessionDescription' handler break
-				break;
-			default:
-				console.log(
-					'Unknown message type received from client -',
-					message.type
-				);
-				break;
+			others = Object.assign(
+				{},
+				...others.map(socket => {
+					return { [socket.id]: socket.data };
+				})
+			);
+			// Send the data to the client-side socket who requested it by passing it through the acknowledgment
+			return ack(others);
+		} catch (error) {
+			return console.log(error);
 		}
 	});
 
-	// Utility function "part"
-	const part = channel => {
-		console.log(`[${socket.id}] wants to part channel ${channel}`.blue);
-
-		if (!(channel in socket.channels)) {
-			console.log(`[${socket.id}] ERROR: not in ${channel}`.red);
-			return;
-		}
-
-		delete socket.channels[channel];
-		delete app.locals.channels[channel][socket.id];
-
-		for (id in app.locals.channels[channel]) {
-			app.locals.channels[channel][id].send(
-				JSON.stringify({
-					type: 'removePeer',
-					peer_id: socket.id,
-				})
+	socket.on(
+		'webrtc:relaySessionDescription',
+		async (meeting_id, peer_id, session_description) => {
+			console.log(
+				`[${socket.id}] relaying session description to [${peer_id}]`
+					.bgBlue.cyan
 			);
-			socket.send(
-				JSON.stringify({
-					type: 'removePeer',
-					peer_id: id,
-				})
-			);
+
+			const sockets = await io.in(meeting_id).fetchSockets();
+
+			// relay the session description to the given peer
+			for (let s of sockets) {
+				if (s.id == peer_id) {
+					s.emit(
+						'webrtc:sessionDescription',
+						socket.id,
+						session_description
+					);
+					return;
+				}
+			}
 		}
-	};
-});
-*/
-	console.log(`[${socket.id}] has connected.`.green);
-  logAllSockets(io)
+	);
+
+	socket.on(
+		'webrtc:relayICECandidate',
+		async (meeting_id, peer_id, ice_candidate) => {
+			console.log(
+				`[${socket.id}] relaying ICE candidate to [${peer_id}]`.bgBlue
+					.cyan
+			);
+
+			const sockets = await io.in(meeting_id).fetchSockets();
+
+			// relay the ice candidate to the given peer
+			for (let s of sockets) {
+				if (s.id == peer_id) {
+					s.emit('webrtc:iceCandidate', socket.id, ice_candidate);
+					return;
+				}
+			}
+		}
+	);
 });
 
 httpServer.listen(PORT, () => {

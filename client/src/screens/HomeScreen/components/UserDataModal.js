@@ -10,7 +10,7 @@ const UserDataModal = ({ show, handleClose, handleSubmit, meeting_id }) => {
 	const history = useHistory();
 
 	return (
-		<Modal show={show ? show : undefined} onHide={() => {}}>
+		<Modal animation={false} show={show ? show : undefined} onHide={() => {}}>
 			<Modal.Header>
 				<Modal.Title>
 					Joining room{' '}
