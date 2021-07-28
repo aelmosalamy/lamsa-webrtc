@@ -69,7 +69,8 @@ const createSocket = (
 		});
 
 		// Nullify peer streams
-		setRemoteMediaStreams({});
+		remoteMediaStreams = {};
+		setRemoteMediaStreams(remoteMediaStreams);
 		// Close existing peer connections
 		for (let peer_id in peerConnections) {
 			peerConnections[peer_id].close();
@@ -192,10 +193,9 @@ const createSocket = (
 		// Remove stream from peer streams
 		if (peer_id in remoteMediaStreams) {
 			// Non-mutating removal
-			const streams = Object.assign({}, remoteMediaStreams);
-			delete streams.peer_id;
+			delete remoteMediaStreams.peer_id;
 
-			setRemoteMediaStreams(streams);
+			setRemoteMediaStreams(remoteMediaStreams);
 		}
 
 		// Close peer connection and delete it from our peerConnections object

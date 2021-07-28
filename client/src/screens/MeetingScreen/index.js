@@ -27,7 +27,7 @@ const MeetingScreen = () => {
 	const [peerConnections, setPeerConnections] = useState({});
 
 	const [localMediaStream, setLocalMediaStream] = useState(undefined);
-	const [remoteMediaStreams, setRemoteMediaStreams] = useState([]);
+	const [remoteMediaStreams, setRemoteMediaStreams] = useState({});
 	/*
 	useEffect(() => {
 		// Prompt user before leaving the room, also do necessary clean up
@@ -97,27 +97,22 @@ const MeetingScreen = () => {
 					</Col>
 				</Row>
 				<Row>
-					{remoteMediaStreams &&
-						Object.keys(remoteMediaStreams).map((key, index) => {
-							const stream = remoteMediaStreams[key][0];
-							console.log(`Remote stream ${index}`, stream);
-							return (
-								<Col key={index} xs={3}>
-									<Video
-										className="remote"
-										stream={stream}
-										muted={false}
-									/>
-									<p>{key}</p>
-								</Col>
-							);
-						})}
-				</Row>
-				<ul>
-					{Object.keys(remoteMediaStreams).map((id, ind) => {
-						<li key={ind}>{id}</li>;
+					{Object.keys(remoteMediaStreams).map((key, index, arr) => {
+						console.log('remote media length', arr.length);
+						const stream = remoteMediaStreams[key][0];
+						console.log(stream);
+						return (
+							<Col key={index} xs={3}>
+								<p>{key}</p>
+								<Video
+									className="remote"
+									stream={stream}
+									muted={false}
+								/>
+							</Col>
+						);
 					})}
-				</ul>
+				</Row>
 				<p>{meeting_id}</p>
 				<p>Name: {userData && userData.name}</p>
 				<h1>Others</h1>
