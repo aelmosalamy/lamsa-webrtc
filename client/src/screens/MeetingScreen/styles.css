@@ -4,3 +4,11 @@
 video {
 	width: 100%;
 }
+
+.me {
+	border: 5px solid green;
+}
+
+.remote {
+	border: 5px solid red;
+}

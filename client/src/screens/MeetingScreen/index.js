@@ -10,7 +10,6 @@ import {
 import { useHistory, useParams, useRouteMatch, Prompt } from 'react-router';
 
 import { createSocket } from '../../utils/socketFunctions';
-import { getLocalMediaStream } from '../../utils/mediaFunctions';
 import meetingIdUtils from '../../utils/meetingIdUtils';
 
 import Video from './components/Video';
@@ -28,7 +27,7 @@ const MeetingScreen = () => {
 	const [peerConnections, setPeerConnections] = useState({});
 
 	const [localMediaStream, setLocalMediaStream] = useState(undefined);
-	const [remoteMediaStreams, setRemoteMediaStreams] = useState({});
+	const [remoteMediaStreams, setRemoteMediaStreams] = useState([]);
 	/*
 	useEffect(() => {
 		// Prompt user before leaving the room, also do necessary clean up
@@ -40,13 +39,13 @@ const MeetingScreen = () => {
 	}, []);*/
 
 	// Request media stream and create connection through sockets
-	useEffect(async () => {
+	useEffect(() => {
 		if (!socket) {
 			setSocket(
 				createSocket(
 					meeting_id,
 					userData,
-					others,
+					[others, setOthers],
 					setLocalMediaStream,
 					setRemoteMediaStreams
 				)
@@ -55,6 +54,9 @@ const MeetingScreen = () => {
 		}
 	}, [localMediaStream]);
 
+	useEffect(() => {
+		console.log('remote media', remoteMediaStreams);
+	}, [remoteMediaStreams]);
 
 	useEffect(() => {
 		console.log('peerConnections', peerConnections);
@@ -85,15 +87,37 @@ const MeetingScreen = () => {
 					}
 				/>
 				<Row>
-					<Col xs={6}>
-						<Video stream={localMediaStream} muted />
+					<Col xs={3}>
+						{socket && socket.id}
+						<Video
+							className="me"
+							stream={localMediaStream && localMediaStream[0]}
+							muted
+						/>
 					</Col>
-					{Object.values(remoteMediaStreams).map((stream, index) => (
-						<Col xs={6}>
-							<Video key={index} stream={stream} muted={false} />
-						</Col>
-					))}
 				</Row>
+				<Row>
+					{remoteMediaStreams &&
+						Object.keys(remoteMediaStreams).map((key, index) => {
+							const stream = remoteMediaStreams[key][0];
+							console.log(`Remote stream ${index}`, stream);
+							return (
+								<Col key={index} xs={3}>
+									<Video
+										className="remote"
+										stream={stream}
+										muted={false}
+									/>
+									<p>{key}</p>
+								</Col>
+							);
+						})}
+				</Row>
+				<ul>
+					{Object.keys(remoteMediaStreams).map((id, ind) => {
+						<li key={ind}>{id}</li>;
+					})}
+				</ul>
 				<p>{meeting_id}</p>
 				<p>Name: {userData && userData.name}</p>
 				<h1>Others</h1>

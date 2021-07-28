@@ -2,19 +2,19 @@ import { io } from 'socket.io-client';
 import { getLocalMediaStream } from './mediaFunctions';
 
 const WEBSOCKETS_SERVER = 'ws://localhost:5000';
-const ICE_SERVERS = [{ url: 'stun:stun.l.google.com:19302' }];
+const ICE_SERVERS = [{ urls: ['stun:stun.l.google.com:19302'] }];
 
 // Media streams
 let localMediaStream = null;
-const remoteMediaStreams = {};
+let remoteMediaStreams = {};
 
 // Stores peer connections as { id: <Connection Object> }
-const peerConnections = {};
+let peerConnections = {};
 
 const createSocket = (
 	meeting_id,
 	user_data,
-	setOthers,
+	[others, setOthers],
 	setLocalMediaStream,
 	setRemoteMediaStreams
 ) => {
@@ -29,7 +29,7 @@ const createSocket = (
 			video: true,
 			audio: true,
 		});
-		setLocalMediaStream(localMediaStream);
+		setLocalMediaStream([localMediaStream]);
 
 		// Initialize sessionStorage `session` with this socket
 		sessionStorage.setItem(
@@ -136,8 +136,9 @@ const createSocket = (
 		peer_connection.addEventListener('track', e => {
 			// Each stream will cause 2 track event calls (one for "audio" and one for "video"), we will act only in one of them, I choose the audio track because we might have video off in some instances, then we will grab the stream object from the event only once.
 			if (e.track.kind === 'audio') {
+				// It's important that you mutate the local remoteMediaStream as you set the setRemoteMediaStreams state! Otherwise you gonna always have 1 remote media stream at a time
 				setRemoteMediaStreams(
-					Object.assign({}, remoteMediaStreams, {
+					Object.assign(remoteMediaStreams, {
 						// Use peer_id as a key storing that peer's streams
 						[peer_id]: [...e.streams],
 					})
