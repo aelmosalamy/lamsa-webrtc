@@ -7,6 +7,7 @@ video {
 
 .me {
 	border: 5px solid green;
+	transform: rotateY(180deg);
 }
 
 .remote {

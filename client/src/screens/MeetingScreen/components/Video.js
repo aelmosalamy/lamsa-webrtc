@@ -3,14 +3,22 @@ import React, { useEffect, useRef } from 'react';
 const Video = ({ stream, muted = false, ...props }) => {
 	const videoRef = useRef(null);
 
-	if (stream && videoRef.current) {
+	useEffect(() => {
+		if (!videoRef.current) return;
 		videoRef.current.defaultMuted = muted;
 		videoRef.current.muted = muted;
+	}, [videoRef]);
 
+	useEffect(() => {
+		if (!stream) return;
 		videoRef.current.srcObject = stream;
-	}
+	}, [stream]);
 
-	return <video ref={videoRef} autoPlay {...props} />;
+	return stream ? (
+		<video ref={videoRef} autoPlay {...props} />
+	) : (
+		<p className="text-danger">Stream loading...</p>
+	);
 };
 
 export default Video;

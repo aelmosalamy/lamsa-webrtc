@@ -136,7 +136,7 @@ const createSocket = (
 
 		peer_connection.addEventListener('track', e => {
 			// Each stream will cause 2 track event calls (one for "audio" and one for "video"), we will act only in one of them, I choose the audio track because we might have video off in some instances, then we will grab the stream object from the event only once.
-			if (e.track.kind === 'audio') {
+			if (e.track.kind === 'video') {
 				// It's important that you mutate the local remoteMediaStream as you set the setRemoteMediaStreams state! Otherwise you gonna always have 1 remote media stream at a time
 				setRemoteMediaStreams(
 					Object.assign(remoteMediaStreams, {
