@@ -100,14 +100,11 @@ const MeetingScreen = () => {
 				// Clear sessionStorage
 				sessionStorage.clear();
 
-				socket.emit('leave meeting', meeting_id, userData, () => {
-					console.log('You left the meeting.');
-				});
-
 				// Nullify peer streams
 				remoteMediaStreams = {};
 				setStateRemoteMediaStreams(remoteMediaStreams);
 
+				console.log('Closing existing peer connections');
 				// Close existing peer connections
 				for (let peer_id in peerConnections) {
 					peerConnections[peer_id].close();
@@ -127,6 +124,11 @@ const MeetingScreen = () => {
 
 			socket.on('someone left', id => {
 				console.log(`${id} left the meeting`);
+
+				// Remote the media stream associated with him
+				delete remoteMediaStreams[id];
+				setStateRemoteMediaStreams(remoteMediaStreams);
+
 				// Remove him from session
 				updateSessionStorage(obj => {
 					delete obj.others[id];
@@ -236,7 +238,7 @@ const MeetingScreen = () => {
 				if (peer_id in remoteMediaStreams) {
 					// Non-mutating removal
 
-					delete remoteMediaStreams.peer_id;
+					delete remoteMediaStreams[peer_id];
 
 					setStateRemoteMediaStreams(remoteMediaStreams);
 				}
@@ -359,7 +361,7 @@ const MeetingScreen = () => {
 						<Video
 							className="me"
 							stream={stateLocalMediaStream}
-							muted
+							muted={true}
 						/>
 					</Col>
 				</Row>
@@ -373,11 +375,7 @@ const MeetingScreen = () => {
 							return (
 								<Col key={index} xs={3}>
 									<p>{key}</p>
-									<Video
-										className="remote"
-										stream={stream}
-										muted={false}
-									/>
+									<Video className="remote" stream={stream} />
 								</Col>
 							);
 						}

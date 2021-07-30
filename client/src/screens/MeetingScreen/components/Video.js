@@ -4,15 +4,12 @@ const Video = ({ stream, muted = false, ...props }) => {
 	const videoRef = useRef(null);
 
 	useEffect(() => {
-		if (!videoRef.current) return;
+		if (!(stream && videoRef.current)) return;
+		videoRef.current.srcObject = stream;
+
 		videoRef.current.defaultMuted = muted;
 		videoRef.current.muted = muted;
-	}, [videoRef]);
-
-	useEffect(() => {
-		if (!stream) return;
-		videoRef.current.srcObject = stream;
-	}, [stream]);
+	}, [stream, videoRef.current]);
 
 	return stream ? (
 		<video ref={videoRef} autoPlay {...props} />
