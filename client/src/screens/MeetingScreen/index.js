@@ -194,6 +194,9 @@ const MeetingScreen = () => {
 						setStateRemoteMediaStreams(
 							Object.assign({}, remoteMediaStreams)
 						);
+
+						// Audio indicator when you start receiving remote streams :D Idk why I love this feature so much
+						new Audio(CHIME).play();
 					}
 				};
 
@@ -329,7 +332,7 @@ const MeetingScreen = () => {
 			setStateSocket(socket);
 			console.log('SOCKET CREATED');
 		}
-	}, []);
+	}, [stateSocket, meeting_id, userData]);
 
 	useEffect(() => {
 		// Function returned by the useEffect callback is ran on unmount (idk why i

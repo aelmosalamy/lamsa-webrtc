@@ -1,4 +1,6 @@
+import { cyan } from 'colors';
 import React, { useEffect, useRef } from 'react';
+import { Spinner } from 'react-bootstrap';
 
 const Video = ({ user, isLocal, muted = false, ...props }) => {
 	const videoRef = useRef(null);
@@ -13,13 +15,13 @@ const Video = ({ user, isLocal, muted = false, ...props }) => {
 	}, [user, videoRef.current]);
 
 	return user?.stream ? (
-		<div id={user.id} className="Video">
+		<div id={user?.id} className="Video">
 			{/* <code>{JSON.stringify(user.userData)}</code> */}
 			<video ref={videoRef} autoPlay {...props} />
 			<p className="Video__name">{isLocal ? 'You' : user.id} </p>
 		</div>
 	) : (
-		<p className="text-danger">Stream loading...</p>
+		<Spinner animation="grow" role="status" />
 	);
 };
 
