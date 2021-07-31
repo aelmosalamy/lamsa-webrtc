@@ -9,13 +9,15 @@ import {
 	InputGroup,
 	Row,
 	Col,
+	Container,
 } from 'react-bootstrap';
 
 import { getLocalMediaStream } from '../../utils/mediaFunctions';
 import meetingIdUtils from '../../utils/meetingIdUtils';
 
-import Video from './components/Video';
+import VideoTiles from './components/VideoTiles';
 import './styles.css';
+const CHIME = '/chime.webm';
 
 const WEBSOCKETS_SERVER = 'ws://localhost:5000';
 const ICE_SERVERS = [{ urls: ['stun:stun.l.google.com:19302'] }];
@@ -46,9 +48,14 @@ const MeetingScreen = () => {
 		// closed manually.
 		console.log('Started listening to route changes');
 	}, []);*/
+	// useEffect(() => {
+	// 	console.log('stateRemoteMediaStreams', stateRemoteMediaStreams);
+	// }, [stateRemoteMediaStreams]);
 
 	// Request media stream and create connection through sockets
 	useEffect(() => {
+		// Don't run socket initialization if meeting id is not valid
+		if (!meetingIdUtils.isValid(meeting_id)) return;
 		// Don't run socket initialization if socket exists
 		if (stateSocket === undefined) {
 			const socket = io(WEBSOCKETS_SERVER);
@@ -104,17 +111,22 @@ const MeetingScreen = () => {
 				remoteMediaStreams = {};
 				setStateRemoteMediaStreams(remoteMediaStreams);
 
-				console.log('Closing existing peer connections');
 				// Close existing peer connections
 				for (let peer_id in peerConnections) {
 					peerConnections[peer_id].close();
 				}
-				// Nullify peerConnections
+				console.log('Peer connectioned closed.');
+
+				// Reset peerConnections
 				peerConnections = {};
 			});
 
 			socket.on('someone joined', (id, userData) => {
 				console.log(`${id} joined the meeting`);
+
+				// Play a little audio indicator
+				new Audio(CHIME).play();
+
 				// Add him to session
 				updateSessionStorage(obj => {
 					obj.others[id] = userData;
@@ -176,7 +188,7 @@ const MeetingScreen = () => {
 						// It's important that you mutate the local remoteMediaStream as you set the setRemoteMediaStreams state! Otherwise you gonna always have 1 remote media stream at a time
 						Object.assign(remoteMediaStreams, {
 							// Use peer_id as a key storing that peer's streams
-							[peer_id]: [e.streams[0]],
+							[peer_id]: e.streams[0],
 						});
 
 						setStateRemoteMediaStreams(
@@ -320,17 +332,6 @@ const MeetingScreen = () => {
 	}, []);
 
 	useEffect(() => {
-		console.log(
-			'stateRemoteMediaStreams was mutated',
-			stateRemoteMediaStreams
-		);
-	}, [stateRemoteMediaStreams]);
-
-	// useEffect(() => {
-	// 	console.log('peerConnections', peerConnections);
-	// }, [peerConnections]);
-
-	useEffect(() => {
 		// Function returned by the useEffect callback is ran on unmount (idk why i
 		// never learned about this till now lol)
 		return () => {
@@ -347,56 +348,49 @@ const MeetingScreen = () => {
 		// useEffect as byVal not byRef
 	}, [stateSocket]);
 
-	if (meetingIdUtils.isValid(meeting_id)) {
-		return (
-			<div className="MeetingScreen container">
-				<Prompt
-					message={location =>
-						`Are you sure you wanna leave your current meeting?`
-					}
-				/>
-				<Row>
-					<Col xs={3}>
-						{stateSocket && stateSocket.id}
-						<Video
-							className="me"
-							stream={stateLocalMediaStream}
-							muted={true}
-						/>
-					</Col>
-				</Row>
-				<Row id="123"></Row>
-				<Row>
-					{Object.keys(stateRemoteMediaStreams).map(
-						(key, index, arr) => {
-							console.log('remote media length', arr.length);
-							const stream = stateRemoteMediaStreams[key][0];
-
-							return (
-								<Col key={index} xs={3}>
-									<p>{key}</p>
-									<Video className="remote" stream={stream} />
-								</Col>
-							);
+	return (
+		<Container fluid className="MeetingScreen">
+			{meetingIdUtils.isValid(meeting_id) ? (
+				<>
+					<Prompt
+						message={location =>
+							`Are you sure you wanna leave your current meeting?`
 						}
-					)}
-				</Row>
-				<p>{meeting_id}</p>
-				<p>Name: {userData && userData.name}</p>
-				<h1>Others</h1>
-				<ul>
-					{Object.keys(others).map((o, index) => (
-						<li key={index}>
-							{JSON.stringify(others[o], null, 3)}
-						</li>
-					))}
-				</ul>
-				<Button>Click me</Button>
-			</div>
-		);
-	} else {
-		return <p className="text-danger">Invalid meeting id {meeting_id}</p>;
-	}
+					/>
+					<VideoTiles
+						joinees={
+							stateSocket
+								? [
+										{
+											id: stateSocket.id,
+											userData,
+											stream: stateLocalMediaStream,
+										},
+										...Object.keys(
+											stateRemoteMediaStreams
+										).map(id => {
+											return {
+												id,
+												userData: others[id],
+												stream: stateRemoteMediaStreams[
+													id
+												],
+											};
+										}),
+								  ]
+								: []
+						}
+					/>
+				</>
+			) : (
+				<>
+					<p className="text-danger">
+						ERROR: Invalid meeting id {meeting_id}
+					</p>
+				</>
+			)}
+		</Container>
+	);
 };
 
 // Given a function and an item, updates sessionStorage
