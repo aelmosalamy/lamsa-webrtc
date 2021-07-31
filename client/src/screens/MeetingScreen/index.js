@@ -43,18 +43,17 @@ const MeetingScreen = () => {
 		useState(undefined);
 	const [stateRemoteMediaStreams, setStateRemoteMediaStreams] = useState({});
 
-
 	const handleMute = () => {
-		console.log('MUTE')
-	}
+		console.log('MUTE');
+	};
 
 	const handleDeafen = () => {
-		console.log('DEAFEN')
-	}
+		console.log('DEAFEN');
+	};
 
 	const handleVideo = () => {
-		console.log('VIDEO')
-	}
+		console.log('VIDEO');
+	};
 
 	/*
 	useEffect(() => {
@@ -369,7 +368,7 @@ const MeetingScreen = () => {
 	}, [stateSocket]);
 
 	return (
-		<Container fluid className="MeetingScreen">
+		<div className="MeetingScreen">
 			{meetingIdUtils.isValid(meeting_id) ? (
 				<>
 					<Prompt
@@ -401,6 +400,11 @@ const MeetingScreen = () => {
 								: []
 						}
 					/>
+					<BottomNavigation
+						handleMute={handleMute}
+						handleVideo={handleVideo}
+						handleDeafen={handleDeafen}
+					/>
 				</>
 			) : (
 				<>
@@ -409,8 +413,7 @@ const MeetingScreen = () => {
 					</p>
 				</>
 			)}
-			<BottomNavigation handleMute={handleMute} handleVideo={handleVideo} handleDeafen={handleDeafen} />
-		</Container>
+		</div>
 	);
 };
 

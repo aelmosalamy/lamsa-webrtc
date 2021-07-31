@@ -1,6 +1,8 @@
 .MeetingScreen {
 	height: 100vh;
 	width: 100vw;
+	display: flex;
+	flex-direction: column;
 }
 
 .VideoTiles {
@@ -53,6 +55,7 @@ video {
 
 .bottom_nav {
 	background-color: #20222b;
+	padding: 14px 0;
 }
 
 .end_call {
@@ -71,20 +74,31 @@ video {
 	width: 100%;
 	align-items: center;
 	justify-content: center;
-	padding: 10px 20px 10px 20px;
+	/* padding: 10px 20px 10px 20px; */
 }
 
-.bottom_nav_buttons > div > i {
-	font-size: 20px;
-	color: white;
+.bottom_nav_buttons > div {
+	display: flex;
+}
+
+.bottom_nav_buttons .button {
+	width: 60px;
+	height: 60px;
 	border: 1px solid grey;
-	padding: 20px;
 	border-radius: 10px;
 	transition: 100ms;
 	margin-right: 25px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
-.bottom_nav_buttons > div > i:hover {
-	background-color: #4C4E55;
+.bottom_nav_buttons .button i {
+	font-size: 20px;
+	color: white;
+}
+
+.bottom_nav_buttons .button:hover {
+	background-color: #4c4e55;
 	cursor: pointer;
 }

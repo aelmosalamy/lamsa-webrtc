@@ -1,48 +1,70 @@
-import React, { useState } from 'react'
-import { Navbar } from 'react-bootstrap'
+import React, { useState } from 'react';
+import { Navbar } from 'react-bootstrap';
 
 const BottomNavigation = ({ handleMute, handleDeafen, handleVideo }) => {
-	const [muted, setMuted] = useState(false)
-	const [deafened, setDeafened] = useState(false)
-	const [noVideo, setNoVideo] = useState(false)
+	const [muted, setMuted] = useState(false);
+	const [deafened, setDeafened] = useState(false);
+	const [noVideo, setNoVideo] = useState(false);
 
 	const handleOnMute = () => {
-		setMuted(!muted)
+		setMuted(!muted);
 
-		handleMute()
-	}
+		handleMute();
+	};
 
 	const handleOnDeafen = () => {
-		setDeafened(!deafened)
+		setDeafened(!deafened);
 
-		handleDeafen()
-	}
+		handleDeafen();
+	};
 
 	const handleOnVideo = () => {
-		setNoVideo(!noVideo)
+		setNoVideo(!noVideo);
 
-		handleVideo()
-	}
+		handleVideo();
+	};
 
 	return (
-		<Navbar className="bottom_nav" fixed="bottom">
-			<div className="container" >
-				<div className="bottom_nav_buttons" >
+		<Navbar className="bottom_nav">
+			<div className="container">
+				<div className="bottom_nav_buttons">
 					<div>
-					<i onClick={handleOnVideo} class={`fas fa-video${noVideo ? '-slash' : ''}`}></i>
-					<i onClick={handleOnDeafen} class={`fas fa-volume-${deafened ? 'mute' : 'up'}`}></i>
-					<i onClick={handleOnMute} class={`fas fa-microphone${muted ? '-slash' : ''}`}></i>
+						<div onClick={handleOnVideo} className="button">
+							<i
+								class={`fas fa-video${noVideo ? '-slash' : ''}`}
+							></i>
+						</div>
+						<div onClick={handleOnDeafen} className="button">
+							<i
+								class={`fas fa-volume-${
+									deafened ? 'mute' : 'up'
+								}`}
+							></i>
+						</div>
+						<div onClick={handleOnMute} className="button">
+							<i
+								class={`fas fa-microphone${
+									muted ? '-slash' : ''
+								}`}
+							></i>
+						</div>
 					</div>
 					<button className="end_call">End Call</button>
 					<div>
-					<i class={`fas fa-edit`}></i>
-					<i class={`fas fa-expand`}></i>
-					<i class={`fas fa-ellipsis-h`}></i>
+						<div className="button">
+							<i class={`fas fa-edit`}></i>
+						</div>
+						<div className="button">
+							<i class={`fas fa-expand`}></i>
+						</div>
+						<div className="button">
+							<i class={`fas fa-ellipsis-h`}></i>
+						</div>
 					</div>
 				</div>
 			</div>
 		</Navbar>
-	)
-}
+	);
+};
 
 export default BottomNavigation;
