@@ -111,6 +111,8 @@ io.on('connection', socket => {
 			io.to(s.id).emit('webrtc:removePeer', socket.id);
 
 			io.to(socket.id).emit('webrtc:removePeer', s.id);
+
+			console.log(`Tore peers with socket ${s.id}`);
 		}
 
 		// Make the socket leave the room
@@ -119,6 +121,8 @@ io.on('connection', socket => {
 
 		// Acknowledgement is run on the client-side
 		ack();
+
+		socket.disconnect();
 	});
 
 	socket.on('get others data', async (meeting_id, ack) => {
