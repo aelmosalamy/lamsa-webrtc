@@ -13,3 +13,41 @@ video {
 .remote {
 	border: 5px solid red;
 }
+
+.bottom_nav {
+	background-color: #20222b;
+}
+
+.end_call {
+	background-color: #ef5a5d;
+	font-size: 16px;
+	color: white;
+	font-weight: 600;
+	border: none;
+	padding: 15px 40px 15px 40px;
+	border-radius: 10px;
+	margin: 0px 50px 0px 25px;
+}
+
+.bottom_nav_buttons {
+	display: flex;
+	width: 100%;
+	align-items: center;
+	justify-content: center;
+	padding: 10px 20px 10px 20px;
+}
+
+.bottom_nav_buttons > div > i {
+	font-size: 20px;
+	color: white;
+	border: 1px solid grey;
+	padding: 20px;
+	border-radius: 10px;
+	transition: 100ms;
+	margin-right: 25px;
+}
+
+.bottom_nav_buttons > div > i:hover {
+	background-color: #4C4E55;
+	cursor: pointer;
+}

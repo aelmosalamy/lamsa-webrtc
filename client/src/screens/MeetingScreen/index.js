@@ -9,12 +9,14 @@ import {
 	InputGroup,
 	Row,
 	Col,
+	Navbar
 } from 'react-bootstrap';
 
 import { getLocalMediaStream } from '../../utils/mediaFunctions';
 import meetingIdUtils from '../../utils/meetingIdUtils';
 
 import Video from './components/Video';
+import BottomNavigation from './components/BottomNavigation';
 import './styles.css';
 
 const WEBSOCKETS_SERVER = 'ws://localhost:5000';
@@ -37,6 +39,20 @@ const MeetingScreen = () => {
 	const [stateLocalMediaStream, setStateLocalMediaStream] =
 		useState(undefined);
 	const [stateRemoteMediaStreams, setStateRemoteMediaStreams] = useState({});
+
+
+	const handleMute = () => {
+		console.log('MUTE')
+	}
+
+	const handleDeafen = () => {
+		console.log('DEAFEN')
+	}
+
+	const handleVideo = () => {
+		console.log('VIDEO')
+	}
+
 	/*
 	useEffect(() => {
 		// Prompt user before leaving the room, also do necessary clean up
@@ -394,6 +410,7 @@ const MeetingScreen = () => {
 					))}
 				</ul>
 				<Button>Click me</Button>
+				<BottomNavigation handleMute={handleMute} handleDeafen={handleDeafen} handleVideo={handleVideo} />
 			</div>
 		);
 	} else {
