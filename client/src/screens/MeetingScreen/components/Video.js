@@ -15,10 +15,16 @@ const Video = ({ user, isLocal, muted = false, ...props }) => {
 	}, [user, videoRef.current]);
 
 	return user?.stream ? (
-		<div id={user?.id} className="Video">
+		<div className="VideoTiles__VideoWrapper">
 			{/* <code>{JSON.stringify(user.userData)}</code> */}
-			<video ref={videoRef} autoPlay {...props} />
-			<p className="Video__name">{isLocal ? 'You' : user.id} </p>
+			<video
+				{...props}
+				className="VideoTiles__Video"
+				id={user.id}
+				ref={videoRef}
+				autoPlay
+			/>
+			<p className="VideoTiles__username">{isLocal ? 'You' : user.id} </p>
 		</div>
 	) : (
 		<Spinner animation="grow" role="status" />

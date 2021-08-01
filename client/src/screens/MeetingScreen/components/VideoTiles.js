@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import {
 	Button,
 	Form,
@@ -13,14 +14,19 @@ const VideoTiles = ({ joinees }) => {
 	// me = { stream: {...}, userData: {...} }, others = Array<me>
 	const [me, ...others] = joinees;
 
+	// Responsive, adaptive layout based on screen width
+	const [screenWidth, setScreenWidth] = useState(window.screen.width);
+
+	useEffect(() => {}, [screenWidth]);
+
 	// Try to fit tiles in 1 screen up to 3 joinees
-	const adaptiveWidth = [1, 2, 3].includes(joinees.length)
+	const adaptiveWidth = [1, 2].includes(joinees.length)
 		? 12 / joinees.length
 		: joinees.length === 4
 		? 6
 		: 4;
 	const colWidth = {
-		xs: 12,
+		xs: 6,
 		sm: 6,
 		//md: 6,
 		md: adaptiveWidth,
@@ -28,33 +34,40 @@ const VideoTiles = ({ joinees }) => {
 
 	return (
 		<Container fluid className="VideoTiles">
-			<Row className="VideoTiles__Row">
-				<Col xs={colWidth.xs} md={colWidth.md}>
-					<Video
-						className="me"
-						user={me}
-						isLocal={true}
-						muted={true}
-					/>
-				</Col>
-				{others.map((other, index, arr) => {
-					console.log('remote media length', arr.length);
-
-					return (
-						<Col
-							xs={colWidth.xs}
-							sm={colWidth.sm}
-							md={colWidth.md}
-							xl={colWidth.xl}
-							key={index}
-						>
-							<Video className="remote" user={other} />
-						</Col>
-					);
-				})}
-			</Row>
+			<GridLayout me={me} others={others} colWidth={colWidth} />
 		</Container>
 	);
 };
+
+const GridLayout = ({ me, others, colWidth }) => (
+	<Row className="VideoTiles__Row">
+		<Col
+			className="VideoTiles__Col"
+			xs={colWidth.xs}
+			sm={colWidth.sm}
+			md={colWidth.md}
+		>
+			<Video className="me" user={me} isLocal={true} muted={true} />
+		</Col>
+		{others.map((other, index, arr) => {
+			console.log('remote media length', arr.length);
+
+			return (
+				<Col
+					className="VideoTiles__Col"
+					xs={colWidth.xs}
+					sm={colWidth.sm}
+					md={colWidth.md}
+					xl={colWidth.xl}
+					key={index}
+				>
+					<Video className="remote" user={other} />
+				</Col>
+			);
+		})}
+	</Row>
+);
+
+const MobileLayout = ({ me, others, colWidth }) => <></>;
 
 export default VideoTiles;
