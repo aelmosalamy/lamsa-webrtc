@@ -21,6 +21,7 @@ const VideoTiles = ({ joinees }) => {
 		: 4;
 	const colWidth = {
 		xs: 12,
+		sm: 6,
 		//md: 6,
 		md: adaptiveWidth,
 	};
@@ -42,6 +43,7 @@ const VideoTiles = ({ joinees }) => {
 					return (
 						<Col
 							xs={colWidth.xs}
+							sm={colWidth.sm}
 							md={colWidth.md}
 							xl={colWidth.xl}
 							key={index}
