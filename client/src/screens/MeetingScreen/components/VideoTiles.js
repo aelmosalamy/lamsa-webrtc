@@ -17,7 +17,6 @@ const VideoTiles = ({ joinees }) => {
 	// Responsive, adaptive layout based on screen width
 	const [screenWidth, setScreenWidth] = useState(window.screen.width);
 
-	useEffect(() => {}, [screenWidth]);
 
 	// Try to fit tiles in 1 screen up to 3 joinees
 	const adaptiveWidth = [1, 2].includes(joinees.length)
@@ -33,39 +32,23 @@ const VideoTiles = ({ joinees }) => {
 	};
 
 	return (
-		<Container fluid className="VideoTiles">
-			<GridLayout me={me} others={others} colWidth={colWidth} />
-		</Container>
+		<div className="VideoTiles">
+			<GridLayout me={me} others={others}/>
+		</div>
 	);
 };
 
-const GridLayout = ({ me, others, colWidth }) => (
-	<Row className="VideoTiles__Row">
-		<Col
-			className="VideoTiles__Col"
-			xs={colWidth.xs}
-			sm={colWidth.sm}
-			md={colWidth.md}
-		>
+const GridLayout = ({ me, others }) => (
+	<div id="VideoTiles__Row">
 			<Video className="me" user={me} isLocal={true} muted={true} />
-		</Col>
 		{others.map((other, index, arr) => {
 			console.log('remote media length', arr.length);
 
 			return (
-				<Col
-					className="VideoTiles__Col"
-					xs={colWidth.xs}
-					sm={colWidth.sm}
-					md={colWidth.md}
-					xl={colWidth.xl}
-					key={index}
-				>
 					<Video className="remote" user={other} />
-				</Col>
 			);
 		})}
-	</Row>
+	</div>
 );
 
 const MobileLayout = ({ me, others, colWidth }) => <></>;
