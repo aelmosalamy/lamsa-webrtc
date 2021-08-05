@@ -45,6 +45,9 @@ const MeetingScreen = () => {
 
 	const handleMute = () => {
 		console.log('MUTE');
+		const track = stateLocalMediaStream?.getAudioTracks()[0];
+
+		track.enabled = !track.enabled;
 	};
 
 	const handleDeafen = () => {
@@ -53,62 +56,71 @@ const MeetingScreen = () => {
 
 	const handleVideo = () => {
 		console.log('VIDEO');
+
+		const track = stateLocalMediaStream?.getVideoTracks()[0];
+
+		track.enabled = !track.enabled;
 	};
 
 	function Area(Increment, Count, Width, Height, Margin = 10) {
-        let i = 0;
+		let i = 0;
 		let w = 0;
-        let h = Increment * 0.75 + (Margin * 2);
-        while (i < (Count)) {
-            if ((w + Increment) > Width) {
-                w = 0;
-                h = h + (Increment * 0.75) + (Margin * 2);
-            }
-            w = w + Increment + (Margin * 2);
-            i++;
-        }
-        if (h > Height) return false;
-        else return Increment;
-    }
+		let h = Increment * 0.75 + Margin * 2;
+		while (i < Count) {
+			if (w + Increment > Width) {
+				w = 0;
+				h = h + Increment * 0.75 + Margin * 2;
+			}
+			w = w + Increment + Margin * 2;
+			i++;
+		}
+		if (h > Height) return false;
+		else return Increment;
+	}
 
-    function Dish() {
+	function Dish() {
+		let Margin = 2;
+		let Scenary = document.getElementById('VideoTiles__Row');
+		let Width = Scenary.offsetWidth - Margin * 2;
+		let Height = Scenary.offsetHeight - Margin * 2;
+		let Cameras = document.getElementsByClassName(
+			'VideoTiles__VideoWrapper'
+		);
+		let max = 0;
 
-            let Margin = 2;
-            let Scenary = document.getElementById('VideoTiles__Row');
-            let Width = Scenary.offsetWidth - (Margin * 2);
-            let Height = Scenary.offsetHeight - (Margin * 2);
-            let Cameras = document.getElementsByClassName('VideoTiles__VideoWrapper');
-            let max = 0;
-        
-            let i = 1;
-            while (i < 5000) {
-                let w = Area(i, Cameras.length, Width, Height, Margin);
-                if (w === false) {
-                    max =  i - 1;
-                    break;
-                }
-                i++;
-            }
-        
-            max = max - (Margin * 2);
-            setWidth(max, Margin);
-			console.log('DISH')
+		let i = 1;
+		while (i < 5000) {
+			let w = Area(i, Cameras.length, Width, Height, Margin);
+			if (w === false) {
+				max = i - 1;
+				break;
+			}
+			i++;
 		}
 
-    function setWidth(width, margin) {
-        let Cameras = document.getElementsByClassName('VideoTiles__VideoWrapper');
-        for (var s = 0; s < Cameras.length; s++) {
-            Cameras[s].style.width = width + "px";
-            Cameras[s].style.margin = margin + "px";
-            Cameras[s].style.height = (width * 0.75) + "px";
-        }
-		console.log('SET WIDTH')
-    }
+		max = max - Margin * 2;
+		setWidth(max, Margin);
+	}
 
-	window.addEventListener("load", function (event) {
-        Dish();
-        window.onresize = Dish;
-    }, false);
+	function setWidth(width, margin) {
+		let Cameras = document.getElementsByClassName(
+			'VideoTiles__VideoWrapper'
+		);
+		for (var s = 0; s < Cameras.length; s++) {
+			Cameras[s].style.width = width + 'px';
+			Cameras[s].style.margin = margin + 'px';
+			Cameras[s].style.height = width * 0.75 + 'px';
+		}
+	}
+
+	window.addEventListener(
+		'load',
+		function (event) {
+			Dish();
+			window.onresize = Dish;
+		},
+		false
+	);
 
 	/*
 	useEffect(() => {
@@ -423,9 +435,9 @@ const MeetingScreen = () => {
 	}, [stateSocket]);
 
 	useEffect(() => {
-		Dish()
-	})
-	
+		Dish();
+	});
+
 	return (
 		<div className="MeetingScreen">
 			{meetingIdUtils.isValid(meeting_id) ? (
