@@ -37,7 +37,7 @@
 
 .VideoTiles__VideoWrapper {
 	position: relative;
-	margin: auto;        
+	margin: auto;
 	vertical-align: middle;
 	align-self: center;
 	border-radius: 10px;
@@ -80,7 +80,7 @@
 
 .buttons {
 	display: flex;
-	width: 100%;
+	/* width: 100%; */
 	align-items: center;
 	justify-content: space-between;
 	max-width: 220px;
@@ -89,6 +89,10 @@
 
 .buttons > div {
 	display: flex;
+}
+
+.buttons > div:not(:last-child) {
+	margin-right: 8px;
 }
 
 .buttons .button {
@@ -127,4 +131,12 @@
 
 .end_call:hpver {
 	background-color: #bb3d3f;
+}
+
+.ChatBox {
+	position: absolute;
+	margin: 10px;
+	top: 0;
+	right: 0;
+	opacity: 0.75;
 }

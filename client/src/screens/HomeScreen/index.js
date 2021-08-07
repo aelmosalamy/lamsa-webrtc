@@ -26,7 +26,7 @@ const HomeScreen = () => {
 	const history = useHistory();
 
 	const handleSubmitModal = userData => {
-		sessionStorage.setItem('userData', JSON.stringify(userData));
+		sessionStorage.setItem('me', JSON.stringify(userData));
 		// Create and move to new room
 		history.push(`/${isNewMeeting ? newMeetingId : joinMeetingId}`);
 	};

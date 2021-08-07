@@ -2,43 +2,29 @@ import React, { useState } from 'react';
 import { Container, Navbar } from 'react-bootstrap';
 
 const BottomNavigation = ({ handleMute, handleDeafen, handleVideo }) => {
-	const [muted, setMuted] = useState(false);
-	const [deafened, setDeafened] = useState(false);
-	const [noVideo, setNoVideo] = useState(false);
-
-	const handleOnMute = () => {
-		setMuted(!muted);
-
-		handleMute();
-	};
-
-	const handleOnDeafen = () => {
-		setDeafened(!deafened);
-
-		handleDeafen();
-	};
-
-	const handleOnVideo = () => {
-		setNoVideo(!noVideo);
-
-		handleVideo();
-	};
+	const [mutedSlash, setMutedSlash] = useState(false);
+	const [videoSlash, setVideoSlash] = useState(false);
 
 	return (
 		<Navbar className="bottom_nav">
 			{/* <Container className="bottom_nav_buttons"> */}
 			<div className="buttons">
-				<div onClick={handleOnVideo} className="button">
-					<i className={`fas fa-video${noVideo ? '-slash' : ''}`}></i>
-				</div>
-				<div onClick={handleOnDeafen} className="button">
+				<div
+					onClick={() => handleVideo(setVideoSlash)}
+					className="button"
+				>
 					<i
-						className={`fas fa-volume-${deafened ? 'mute' : 'up'}`}
+						className={`fas fa-video${videoSlash ? '-slash' : ''}`}
 					></i>
 				</div>
-				<div onClick={handleOnMute} className="button">
+				<div
+					onClick={() => handleMute(setMutedSlash)}
+					className="button"
+				>
 					<i
-						className={`fas fa-microphone${muted ? '-slash' : ''}`}
+						className={`fas fa-microphone${
+							mutedSlash ? '-slash' : ''
+						}`}
 					></i>
 				</div>
 			</div>

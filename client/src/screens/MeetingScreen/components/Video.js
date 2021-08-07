@@ -24,7 +24,9 @@ const Video = ({ user, isLocal, muted = false, ...props }) => {
 				ref={videoRef}
 				autoPlay
 			/>
-			<p className="VideoTiles__username">{isLocal ? 'You' : user.id} </p>
+			<p className="VideoTiles__username">
+				{isLocal ? 'You' : user.userData?.name}{' '}
+			</p>
 		</div>
 	) : (
 		<Spinner animation="grow" role="status" />

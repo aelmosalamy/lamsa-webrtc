@@ -16,9 +16,10 @@ import {
 import { getLocalMediaStream } from '../../utils/mediaFunctions';
 import meetingIdUtils from '../../utils/meetingIdUtils';
 
-import Video from './components/Video';
 import BottomNavigation from './components/BottomNavigation';
+import ChatBox from './components/ChatBox';
 import VideoTiles from './components/VideoTiles';
+
 import './styles.css';
 const CHIME = '/chime.webm';
 
@@ -34,7 +35,7 @@ const MeetingScreen = () => {
 	const { meeting_id } = useParams();
 
 	const [userData, setUserData] = useState(
-		JSON.parse(sessionStorage.getItem('userData'))
+		JSON.parse(sessionStorage.getItem('me'))
 	);
 	const [stateSocket, setStateSocket] = useState(undefined);
 	const [others, setOthers] = useState({});
@@ -43,23 +44,31 @@ const MeetingScreen = () => {
 		useState(undefined);
 	const [stateRemoteMediaStreams, setStateRemoteMediaStreams] = useState({});
 
-	const handleMute = () => {
-		console.log('MUTE');
-		const track = stateLocalMediaStream?.getAudioTracks()[0];
+	const [messages, setMessages] = useState([]);
 
-		track.enabled = !track.enabled;
+	const handleMute = setMutedSlash => {
+		try {
+			console.log('MUTE');
+			const track = stateLocalMediaStream?.getAudioTracks()[0];
+
+			track.enabled = !track.enabled;
+			setMutedSlash(!track.enabled);
+		} catch (error) {
+			console.error(error);
+		}
 	};
 
-	const handleDeafen = () => {
-		console.log('DEAFEN');
-	};
+	const handleVideo = setVideoSlash => {
+		try {
+			console.log('VIDEO');
 
-	const handleVideo = () => {
-		console.log('VIDEO');
+			const track = stateLocalMediaStream?.getVideoTracks()[0];
 
-		const track = stateLocalMediaStream?.getVideoTracks()[0];
-
-		track.enabled = !track.enabled;
+			track.enabled = !track.enabled;
+			setVideoSlash(!track.enabled);
+		} catch (error) {
+			console.error(error);
+		}
 	};
 
 	function Area(Increment, Count, Width, Height, Margin = 10) {
@@ -79,7 +88,7 @@ const MeetingScreen = () => {
 	}
 
 	function Dish() {
-		let Margin = 2;
+		let Margin = 10;
 		let Scenary = document.getElementById('VideoTiles__Row');
 		let Width = Scenary.offsetWidth - Margin * 2;
 		let Height = Scenary.offsetHeight - Margin * 2;
@@ -157,15 +166,16 @@ const MeetingScreen = () => {
 
 				setStateLocalMediaStream(localMediaStream);
 
-				// Initialize sessionStorage `session` with this socket
-				sessionStorage.setItem(
-					'session',
-					JSON.stringify({
-						meeting_id,
-						me: Object.assign({ id: socket.id }, userData),
-						others: {},
-					})
-				);
+				// Initialize sessionStorage
+				// sessionStorage.clear();
+				userData &&
+					sessionStorage.setItem(
+						'me',
+						JSON.stringify(
+							Object.assign({}, userData, { id: socket.id })
+						)
+					);
+				sessionStorage.setItem('others', JSON.stringify({}));
 
 				socket.emit('join meeting', meeting_id, userData, () => {
 					console.log(`You joined meeting [${meeting_id}].`);
@@ -175,9 +185,8 @@ const MeetingScreen = () => {
 				socket.emit('get others data', meeting_id, others => {
 					console.log('Got other joinees data :D', others);
 					updateSessionStorage(obj => {
-						obj.others = others;
-						return obj;
-					}, 'session');
+						return others;
+					}, 'others');
 					setOthers(others);
 				});
 			});
@@ -188,7 +197,7 @@ const MeetingScreen = () => {
 				console.log('DISCONNECTED from signaling server.');
 
 				// Clear sessionStorage
-				sessionStorage.clear();
+				// sessionStorage.clear(); (No need)
 
 				// Nullify peer streams
 				remoteMediaStreams = {};
@@ -212,9 +221,10 @@ const MeetingScreen = () => {
 
 				// Add him to session
 				updateSessionStorage(obj => {
-					obj.others[id] = userData;
+					obj[id] = userData;
+					setOthers(obj);
 					return obj;
-				}, 'session');
+				}, 'others');
 			});
 
 			socket.on('someone left', id => {
@@ -226,9 +236,10 @@ const MeetingScreen = () => {
 
 				// Remove him from session
 				updateSessionStorage(obj => {
-					delete obj.others[id];
+					delete obj[id];
+					setOthers(obj);
 					return obj;
-				}, 'session');
+				}, 'others');
 			});
 
 			socket.on('webrtc:addPeer', (peer_id, should_create_offer) => {
@@ -471,10 +482,10 @@ const MeetingScreen = () => {
 								: []
 						}
 					/>
+					<ChatBox open={true} />
 					<BottomNavigation
 						handleMute={handleMute}
 						handleVideo={handleVideo}
-						handleDeafen={handleDeafen}
 					/>
 				</>
 			) : (
