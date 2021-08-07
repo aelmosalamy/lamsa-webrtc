@@ -168,16 +168,16 @@ const MeetingScreen = () => {
 
 				// Initialize sessionStorage
 				// sessionStorage.clear();
+				const newUserData = Object.assign({}, userData, {
+					id: socket.id,
+				});
+
 				userData &&
-					sessionStorage.setItem(
-						'me',
-						JSON.stringify(
-							Object.assign({}, userData, { id: socket.id })
-						)
-					);
+					sessionStorage.setItem('me', JSON.stringify(newUserData));
+				setUserData(newUserData);
 				sessionStorage.setItem('others', JSON.stringify({}));
 
-				socket.emit('join meeting', meeting_id, userData, () => {
+				socket.emit('join meeting', meeting_id, newUserData, () => {
 					console.log(`You joined meeting [${meeting_id}].`);
 				});
 
