@@ -1,17 +1,8 @@
 import { io } from 'socket.io-client';
 
-import React, { useEffect, useState, useRef } from 'react';
-import { useHistory, useParams, useRouteMatch, Prompt } from 'react-router';
-import {
-	Button,
-	Form,
-	FormControl,
-	InputGroup,
-	Row,
-	Col,
-	Navbar,
-	Container,
-} from 'react-bootstrap';
+import React, { useEffect, useState } from 'react';
+import { Row, Col } from 'react-bootstrap';
+import { useHistory, useParams, Prompt } from 'react-router';
 
 import { getLocalMediaStream } from '../../utils/mediaFunctions';
 import meetingIdUtils from '../../utils/meetingIdUtils';
@@ -45,6 +36,18 @@ const MeetingScreen = () => {
 	const [stateRemoteMediaStreams, setStateRemoteMediaStreams] = useState({});
 
 	const [messages, setMessages] = useState([]);
+
+	const chat_SendMsgHandler = msg => {
+		console.log('Message passed to server...');
+
+		stateSocket?.emit('chat message', meeting_id, msg, success => {
+			if (!success) return console.error('Message sending failed!');
+			// This is our message, make sure it says "You"
+			Object.assign(msg, { sender: 'You' });
+			setMessages(old_msg => old_msg.concat(msg));
+			console.log('SUCCESS: Message sent');
+		});
+	};
 
 	const handleMute = setMutedSlash => {
 		try {
@@ -240,6 +243,11 @@ const MeetingScreen = () => {
 					setOthers(obj);
 					return obj;
 				}, 'others');
+			});
+
+			socket.on('chat message', msg => {
+				console.log(`Message received: "${msg}"`);
+				setMessages(old_msgs => old_msgs.concat(msg));
 			});
 
 			socket.on('webrtc:addPeer', (peer_id, should_create_offer) => {
@@ -458,31 +466,42 @@ const MeetingScreen = () => {
 							`Are you sure you wanna leave your current meeting?`
 						}
 					/>
-					<VideoTiles
-						joinees={
-							stateSocket
-								? [
-										{
-											id: stateSocket.id,
-											userData,
-											stream: stateLocalMediaStream,
-										},
-										...Object.keys(
-											stateRemoteMediaStreams
-										).map(id => {
-											return {
-												id,
-												userData: others[id],
-												stream: stateRemoteMediaStreams[
-													id
-												],
-											};
-										}),
-								  ]
-								: []
-						}
-					/>
-					<ChatBox open={true} />
+					<Row style={{ height: '100%' }}>
+						<Col>
+							<VideoTiles
+								joinees={
+									stateSocket
+										? [
+												{
+													id: stateSocket.id,
+													userData,
+													stream: stateLocalMediaStream,
+												},
+												...Object.keys(
+													stateRemoteMediaStreams
+												).map(id => {
+													return {
+														id,
+														userData: others[id],
+														stream: stateRemoteMediaStreams[
+															id
+														],
+													};
+												}),
+										  ]
+										: []
+								}
+							/>
+						</Col>
+						<Col>
+							<ChatBox
+								username={userData.name}
+								open={true}
+								messages={messages}
+								sendMessageHandler={chat_SendMsgHandler}
+							/>
+						</Col>
+					</Row>
 					<BottomNavigation
 						handleMute={handleMute}
 						handleVideo={handleVideo}

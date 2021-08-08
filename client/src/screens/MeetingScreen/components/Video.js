@@ -12,7 +12,7 @@ const Video = ({ user, isLocal, muted = false, ...props }) => {
 
 		videoRef.current.defaultMuted = muted;
 		videoRef.current.muted = muted;
-	}, [user, videoRef.current]);
+	}, [user, videoRef.current, muted]);
 
 	return user?.stream ? (
 		<div className="VideoTiles__VideoWrapper">

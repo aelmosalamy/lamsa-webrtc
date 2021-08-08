@@ -125,6 +125,20 @@ io.on('connection', socket => {
 		socket.disconnect();
 	});
 
+	socket.on('chat message', (meeting_id, msg, ack) => {
+		try {
+			// Send to everyone in room and including self
+			socket.to(meeting_id).emit('chat message', msg);
+			console.log(
+				`A message was sent in meeting [${meeting_id}]: ${msg}`
+			);
+			// Report back that the message was sent successfully
+			ack(true);
+		} catch (error) {
+			ack(false);
+		}
+	});
+
 	socket.on('get others data', async (meeting_id, ack) => {
 		try {
 			let others = await io

@@ -134,9 +134,19 @@
 }
 
 .ChatBox {
-	position: absolute;
+	/* position: absolute; */
 	margin: 10px;
 	top: 0;
 	right: 0;
 	opacity: 0.75;
+	max-height: 100%;
+}
+
+.ChatBox .ChatBox__messages {
+	overflow-y: scroll;
+}
+
+.ChatBox .ChatBox__message {
+	margin-bottom: 3px;
+	word-wrap: break-word;
 }
