@@ -20,6 +20,7 @@ const ICE_SERVERS = [{ urls: ['stun:stun.l.google.com:19302'] }];
 var peerConnections = {};
 var remoteMediaStreams = {};
 var localMediaStream = undefined;
+var localScreenStream = undefined;
 
 const MeetingScreen = () => {
 	const history = useHistory();
@@ -34,123 +35,11 @@ const MeetingScreen = () => {
 	const [stateSocket, setStateSocket] = useState(undefined);
 	const [stateLocalMediaStream, setStateLocalMediaStream] =
 		useState(undefined);
+	const [stateScreenStream, setStateScreenStream] = useState(undefined);
 	const [stateRemoteMediaStreams, setStateRemoteMediaStreams] = useState({});
 
 	const [messages, setMessages] = useState([]);
-	const [showChat, setShowChat] = useState(true);
-
-	const chat_SendMsgHandler = msg => {
-		console.log('Message passed to server...');
-
-		stateSocket?.emit('chat message', meeting_id, msg, success => {
-			if (!success) return console.error('Message sending failed!');
-			// This is our message, make sure it says "You"
-			Object.assign(msg, { sender: 'You' });
-			setMessages(old_msg => old_msg.concat(msg));
-			console.log('SUCCESS: Message sent');
-		});
-	};
-
-	const handleToggleChat = () => {
-		setShowChat(!showChat);
-	};
-
-	const handleMute = setMutedSlash => {
-		try {
-			console.log('MUTE');
-			const track = stateLocalMediaStream?.getAudioTracks()[0];
-
-			track.enabled = !track.enabled;
-			setMutedSlash(!track.enabled);
-		} catch (error) {
-			console.error(error);
-		}
-	};
-
-	const handleVideo = setVideoSlash => {
-		try {
-			console.log('VIDEO');
-
-			const track = stateLocalMediaStream?.getVideoTracks()[0];
-
-			track.enabled = !track.enabled;
-			setVideoSlash(!track.enabled);
-		} catch (error) {
-			console.error(error);
-		}
-	};
-
-	function Area(Increment, Count, Width, Height, Margin = 10) {
-		let i = 0;
-		let w = 0;
-		let h = Increment * 0.75 + Margin * 2;
-		while (i < Count) {
-			if (w + Increment > Width) {
-				w = 0;
-				h = h + Increment * 0.75 + Margin * 2;
-			}
-			w = w + Increment + Margin * 2;
-			i++;
-		}
-		if (h > Height) return false;
-		else return Increment;
-	}
-
-	function Dish() {
-		try {
-			let Margin = 10;
-			let Scenary = document.getElementById('VideoTiles__Row');
-			let Width = Scenary.offsetWidth - Margin * 2;
-			let Height = Scenary.offsetHeight - Margin * 2;
-			let Cameras = document.getElementsByClassName(
-				'VideoTiles__VideoWrapper'
-			);
-			let max = 0;
-
-			let i = 1;
-			while (i < 5000) {
-				let w = Area(i, Cameras.length, Width, Height, Margin);
-				if (w === false) {
-					max = i - 1;
-					break;
-				}
-				i++;
-			}
-
-			max = max - Margin * 2;
-			setWidth(max, Margin);
-		} catch (error) {
-			console.error(error);
-		}
-	}
-
-	function setWidth(width, margin) {
-		try {
-			let Cameras = document.getElementsByClassName(
-				'VideoTiles__VideoWrapper'
-			);
-			for (var s = 0; s < Cameras.length; s++) {
-				Cameras[s].style.width = width + 'px';
-				Cameras[s].style.margin = margin + 'px';
-				Cameras[s].style.height = width * 0.75 + 'px';
-			}
-		} catch (error) {
-			console.log(error);
-		}
-	}
-
-	/*
-	useEffect(() => {
-		// Prompt user before leaving the room, also do necessary clean up
-		// (terminate socket connection with server), the termination has to be done
-		// manually due to this being a Single Page App, since routes are completely
-		// visual, the page is never left/unloaded, hence connected sockets must be
-		// closed manually.
-		console.log('Started listening to route changes');
-	}, []);*/
-	// useEffect(() => {
-	// 	console.log('stateRemoteMediaStreams', stateRemoteMediaStreams);
-	// }, [stateRemoteMediaStreams]);
+	const [showChat, setShowChat] = useState(false);
 
 	// Request media stream and create connection through sockets
 	useEffect(() => {
@@ -442,6 +331,129 @@ const MeetingScreen = () => {
 		console.log('SOCKET CREATED');
 	}, [stateSocket, meeting_id, userData]);
 
+	const chat_SendMsgHandler = msg => {
+		console.log('Message passed to server...');
+
+		stateSocket?.emit('chat message', meeting_id, msg, success => {
+			if (!success) return console.error('Message sending failed!');
+			// This is our message, make sure it says "You"
+			Object.assign(msg, { sender: 'You' });
+			setMessages(old_msg => old_msg.concat(msg));
+			console.log('SUCCESS: Message sent');
+		});
+	};
+
+	const handleToggleChat = () => {
+		setShowChat(!showChat);
+	};
+
+	const handleMute = setMutedSlash => {
+		try {
+			console.log('MUTE');
+			const track = stateLocalMediaStream?.getAudioTracks()[0];
+
+			track.enabled = !track.enabled;
+			setMutedSlash(!track.enabled);
+		} catch (error) {
+			console.error(error);
+		}
+	};
+
+	const handleVideo = setVideoSlash => {
+		try {
+			console.log('VIDEO');
+
+			const track = stateLocalMediaStream?.getVideoTracks()[0];
+
+			track.enabled = !track.enabled;
+			setVideoSlash(!track.enabled);
+		} catch (error) {
+			console.error(error);
+		}
+	};
+
+	const startScreenSharing = setScreenSharing => {
+		try {
+			console.log('SCREEN SHARE');
+
+			// const stream =
+		} catch (error) {
+			console.error(error);
+		}
+	};
+
+	function Area(Increment, Count, Width, Height, Margin = 10) {
+		let i = 0;
+		let w = 0;
+		let h = Increment * 0.75 + Margin * 2;
+		while (i < Count) {
+			if (w + Increment > Width) {
+				w = 0;
+				h = h + Increment * 0.75 + Margin * 2;
+			}
+			w = w + Increment + Margin * 2;
+			i++;
+		}
+		if (h > Height) return false;
+		else return Increment;
+	}
+
+	function Dish() {
+		try {
+			let Margin = 10;
+			let Scenary = document.getElementById('VideoTiles__Row');
+			let Width = Scenary.offsetWidth - Margin * 2;
+			let Height = Scenary.offsetHeight - Margin * 2;
+			let Cameras = document.getElementsByClassName(
+				'VideoTiles__VideoWrapper'
+			);
+			let max = 0;
+
+			let i = 1;
+			while (i < 5000) {
+				let w = Area(i, Cameras.length, Width, Height, Margin);
+				if (w === false) {
+					max = i - 1;
+					break;
+				}
+				i++;
+			}
+
+			max = max - Margin * 2;
+			setWidth(max, Margin);
+		} catch (error) {
+			console.error(error);
+		}
+	}
+
+	function setWidth(width, margin) {
+		try {
+			let Cameras = document.getElementsByClassName(
+				'VideoTiles__VideoWrapper'
+			);
+			for (var s = 0; s < Cameras.length; s++) {
+				Cameras[s].style.width = width + 'px';
+				Cameras[s].style.margin = margin + 'px';
+				Cameras[s].style.height = width * 0.75 + 'px';
+			}
+		} catch (error) {
+			console.log(error);
+		}
+	}
+
+	/*
+	useEffect(() => {
+		// Prompt user before leaving the room, also do necessary clean up
+		// (terminate socket connection with server), the termination has to be done
+		// manually due to this being a Single Page App, since routes are completely
+		// visual, the page is never left/unloaded, hence connected sockets must be
+		// closed manually.
+		console.log('Started listening to route changes');
+	}, []);*/
+	// useEffect(() => {
+	// 	console.log('stateRemoteMediaStreams', stateRemoteMediaStreams);
+	// }, [stateRemoteMediaStreams]);
+
 	useEffect(() => {
 		// Function returned by the useEffect callback is ran on unmount (idk why i
 		// never learned about this till now lol)
@@ -511,6 +523,7 @@ const MeetingScreen = () => {
 						handleMute={handleMute}
 						handleVideo={handleVideo}
 						handleToggleChat={handleToggleChat}
+						startScreenSharing={startScreenSharing}
 					/>
 				</>
 			) : (

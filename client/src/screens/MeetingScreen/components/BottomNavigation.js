@@ -1,9 +1,15 @@
 import React, { useState } from 'react';
 import { Container, Navbar, Dropdown, DropdownButton } from 'react-bootstrap';
 
-const BottomNavigation = ({ handleMute, handleVideo, handleToggleChat }) => {
+const BottomNavigation = ({
+	handleMute,
+	handleVideo,
+	handleToggleChat,
+	startScreenSharing,
+}) => {
 	const [mutedSlash, setMutedSlash] = useState(false);
 	const [videoSlash, setVideoSlash] = useState(false);
+	const [screenSharing, setScreenSharing] = useState(false);
 
 	return (
 		<Navbar className="bottom_nav">
@@ -33,8 +39,12 @@ const BottomNavigation = ({ handleMute, handleVideo, handleToggleChat }) => {
 				<div onClick={handleToggleChat} className="button">
 					<i className={`fas fa-comments`}></i>
 				</div>
-				<div className="button" id="eclipse_button">
-					<i className={`fas fa-expand`}></i>
+				<div
+					onClick={() => startScreenSharing(setScreenSharing)}
+					className="button"
+					id="eclipse_button"
+				>
+					<i className={`fa fa-desktop`}></i>
 				</div>
 				<div className="dropup">
 					<div
