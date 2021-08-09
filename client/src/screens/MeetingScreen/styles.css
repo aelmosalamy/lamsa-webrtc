@@ -1,3 +1,7 @@
+body {
+	background-attachment: fixed;
+}
+
 .MeetingScreen {
 	height: 100vh;
 	width: 100vw;
@@ -82,10 +86,22 @@
 
 /* Bottom Navigation */
 .bottom_nav {
-	background-color: #20222b;
 	padding: 14px 0;
 	align-items: center;
 	justify-content: space-around;
+	background: inherit;
+}
+
+.bottom_nav::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	box-shadow: inset 0 0 2000px #20222b;
+	filter: blur(1px);
+	background: inherit;
 }
 
 .buttons {
@@ -94,10 +110,11 @@
 	align-items: center;
 	justify-content: space-between;
 	max-width: 220px;
+	z-index: 1000;
 	/* padding: 10px 20px 10px 20px; */
 }
 
-.buttons > div {
+.buttons > div .meeting_controls_dropdown > div {
 	display: flex;
 }
 
@@ -105,7 +122,27 @@
 	margin-right: 8px;
 }
 
-.buttons .button {
+.meeting_controls_dropdown > div:not(:last-child) {
+	margin-bottom: 8px;
+}
+
+.dropup {
+	display: none;
+}
+
+.meeting_controls_dropdown {
+	background-color: #20222b;
+	min-width: unset;
+	padding: 10px;
+	margin-left: -8px;
+}
+
+#meeting_controls_dropdown::after {
+	content: unset;
+}
+
+.buttons .button,
+.meeting_controls_dropdown .button {
 	width: 60px;
 	height: 60px;
 	border: 1px solid grey;
@@ -117,12 +154,14 @@
 	justify-content: center;
 }
 
-.buttons .button i {
+.buttons .button i,
+.meeting_controls_dropdown .button i {
 	font-size: 20px;
 	color: white;
 }
 
-.buttons .button:hover {
+.buttons .button:hover,
+.meeting_controls_dropdown .button:hover {
 	background-color: #4c4e55;
 	cursor: pointer;
 }
@@ -137,6 +176,7 @@
 	height: 60px;
 	padding: 0 20px;
 	border-radius: 10px;
+	z-index: 1000;
 }
 
 .end_call:hover {
@@ -185,4 +225,14 @@
 .ChatBox #chat-anchor {
 	overflow-anchor: auto;
 	height: 1px;
+}
+
+@media (max-width: 500px) {
+	#edit_button,
+	#eclipse_button {
+		display: none;
+	}
+	.dropup {
+		display: block;
+	}
 }
