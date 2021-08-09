@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Container, Navbar } from 'react-bootstrap';
+import { Navbar } from 'react-bootstrap';
 
-const BottomNavigation = ({ handleMute, handleDeafen, handleVideo }) => {
+const BottomNavigation = ({ handleMute, handleVideo, handleToggleChat }) => {
 	const [mutedSlash, setMutedSlash] = useState(false);
 	const [videoSlash, setVideoSlash] = useState(false);
 
@@ -30,8 +30,8 @@ const BottomNavigation = ({ handleMute, handleDeafen, handleVideo }) => {
 			</div>
 			<button className="end_call">Leave Meeting</button>
 			<div className="buttons">
-				<div className="button">
-					<i className={`fas fa-edit`}></i>
+				<div onClick={handleToggleChat} className="button">
+					<i className={`fas fa-comments`}></i>
 				</div>
 				<div className="button">
 					<i className={`fas fa-expand`}></i>

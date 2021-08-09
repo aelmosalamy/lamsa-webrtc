@@ -6,6 +6,16 @@
 	overflow: hidden;
 }
 
+.MeetingScreen__UpperSection {
+	height: 100%;
+	display: flex;
+	flex-direction: row;
+}
+
+.VideoTilesWrapper {
+	flex-grow: 1;
+}
+
 .VideoTiles {
 	/* padding: 10rem 0; */
 	height: 100%;
@@ -108,7 +118,7 @@
 }
 
 .buttons .button i {
-	font-size: 16px;
+	font-size: 20px;
 	color: white;
 }
 
@@ -129,24 +139,50 @@
 	border-radius: 10px;
 }
 
-.end_call:hpver {
+.end_call:hover {
 	background-color: #bb3d3f;
 }
 
-.ChatBox {
-	/* position: absolute; */
+.ChatBoxWrapper {
 	margin: 10px;
-	top: 0;
-	right: 0;
-	opacity: 0.75;
-	max-height: 100%;
+	flex-shrink: 0;
+	flex-basis: 300px;
+	max-width: 300px;
+	overflow: hidden;
+	transition: flex-basis 200ms, opacity 200ms;
+}
+
+.ChatBoxWrapper.ChatBoxWrapper--hidden {
+	flex-basis: 0;
+	opacity: 0;
+}
+
+.ChatBox.toast.show {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+
+.ChatBox .ChatBox__body {
+	flex-grow: 1;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
 }
 
 .ChatBox .ChatBox__messages {
-	overflow-y: scroll;
+	overflow-y: auto;
+	flex-basis: 0;
+	flex-grow: 1;
+	overflow-anchor: none;
 }
 
 .ChatBox .ChatBox__message {
 	margin-bottom: 3px;
 	word-wrap: break-word;
+}
+
+.ChatBox #chat-anchor {
+	overflow-anchor: auto;
+	height: 1px;
 }

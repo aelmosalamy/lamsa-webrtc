@@ -1,17 +1,27 @@
 import { useState } from 'react';
 import { Toast, Form, Button, InputGroup } from 'react-bootstrap';
 
-const ChatBox = ({ username, open, messages, sendMessageHandler }) => {
+const ChatBox = ({
+	username,
+	open,
+	messages,
+	sendMessageHandler,
+	meeting_id,
+}) => {
 	const [msg, setMsg] = useState('');
 
 	return (
-		<div className="ChatBox">
-			<Toast>
-				<Toast.Header>
-					<strong className="mr-auto">Chat</strong>
+		<div
+			className={`ChatBoxWrapper ${open ? '' : 'ChatBoxWrapper--hidden'}`}
+		>
+			<Toast className="ChatBox">
+				<Toast.Header closeButton={false}>
+					<strong className="mr-auto">
+						Chat <span className="font-italic">({meeting_id})</span>
+					</strong>
 					{/* <small>2 seconds ago</small> */}
 				</Toast.Header>
-				<Toast.Body>
+				<Toast.Body className="ChatBox__body">
 					{messages.length ? (
 						<div className="ChatBox__messages">
 							{messages.map((msg, i) => (
@@ -22,9 +32,10 @@ const ChatBox = ({ username, open, messages, sendMessageHandler }) => {
 									<span>{msg.body}</span>
 								</p>
 							))}
+							<div id="chat-anchor"></div>
 						</div>
 					) : (
-						<p className="text-danger">No messages sent yet!</p>
+						<p className="font-italic">No messages sent yet!</p>
 					)}
 					{/* What's in your mind? */}
 					<Form
