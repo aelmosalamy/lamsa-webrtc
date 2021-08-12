@@ -6,23 +6,40 @@ const VideoTiles = ({ joinees: [me, ...others] }) => {
 		<div className="VideoTilesWrapper">
 			<div className="VideoTiles">
 				<div id="VideoTiles__Row">
-					<Video
-						className="me"
-						user={me}
-						isLocal={true}
-						muted={true}
-					/>
+					{console.log(me)}
+					{me.streams.map(
+						(stream, i) =>
+							stream && (
+								<Video
+									key={stream.id}
+									stream={stream}
+									userData={me.userData}
+									isLocal={true}
+									isScreen={i !== 0}
+								/>
+							)
+					)}
 					{others.map((other, index, arr) => {
-						console.log('remote media length', arr.length);
+						console.log('remote peers count', arr.length);
 						// other.userData = joinees.find(
 						// 	j => j.id === other.id
 						// )?.userData;
-						return (
-							<Video
-								key={index}
-								className="remote"
-								user={other}
-							/>
+						console.log(
+							`remote peer [${index + 1}] streams`,
+							other.streams
+						);
+						return other.streams.map(
+							(stream, i) =>
+								stream && (
+									<Video
+										key={stream.id}
+										className="remote"
+										stream={stream}
+										userData={other.userData}
+										isLocal={false}
+										isScreen={i !== 0}
+									/>
+								)
 						);
 					})}
 				</div>

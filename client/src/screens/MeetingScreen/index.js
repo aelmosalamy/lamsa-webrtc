@@ -6,6 +6,7 @@ import { useHistory, useParams, Prompt } from 'react-router';
 
 import { getLocalMediaStream } from '../../utils/mediaFunctions';
 import meetingIdUtils from '../../utils/meetingIdUtils';
+import Dish from '../../utils/adaptiveDish';
 
 import BottomNavigation from './components/BottomNavigation';
 import ChatBox from './components/ChatBox';
@@ -35,7 +36,8 @@ const MeetingScreen = () => {
 	const [stateSocket, setStateSocket] = useState(undefined);
 	const [stateLocalMediaStream, setStateLocalMediaStream] =
 		useState(undefined);
-	const [stateScreenStream, setStateScreenStream] = useState(undefined);
+	const [stateLocalScreenStream, setStateLocalScreenStream] =
+		useState(undefined);
 	const [stateRemoteMediaStreams, setStateRemoteMediaStreams] = useState({});
 
 	const [messages, setMessages] = useState([]);
@@ -129,7 +131,7 @@ const MeetingScreen = () => {
 		socket.on('someone left', id => {
 			console.log(`${id} left the meeting`);
 
-			// Remote the media stream associated with him
+			// Remote the media streams associated with him
 			delete remoteMediaStreams[id];
 			setStateRemoteMediaStreams(remoteMediaStreams);
 
@@ -168,49 +170,8 @@ const MeetingScreen = () => {
 			});
 			console.log('Peer added', peerConnections);
 
-			// Listen for 'icecandidate' events on the peer_connection
-			peer_connection.onicecandidate = e => {
-				if (e.candidate)
-					socket.emit(
-						'webrtc:relayICECandidate',
-						meeting_id,
-						peer_id,
-						e.candidate
-					);
-			};
-
-			peer_connection.ontrack = e => {
-				console.log('A track was received through peer connection');
-				// Each stream will cause 2 track event calls (one for "audio" and one for "video"), we will act only in one of them, I choose the audio track because we might have video off in some instances, then we will grab the stream object from the event only once.
-				if (e.track.kind === 'video') {
-					// It's important that you mutate the local remoteMediaStream as you set the setRemoteMediaStreams state! Otherwise you gonna always have 1 remote media stream at a time
-					Object.assign(remoteMediaStreams, {
-						// Use peer_id as a key storing that peer's streams
-						[peer_id]: e.streams[0],
-					});
-
-					setStateRemoteMediaStreams(
-						Object.assign({}, remoteMediaStreams)
-					);
-
-					// Audio indicator when you start receiving remote streams :D Idk why I love this feature so much
-					new Audio(CHIME).play();
-				}
-			};
-
-			// Add local track to our peer connection
-			console.log('Sending localMediaStream over peer connection');
-			localMediaStream &&
-				localMediaStream.getTracks().forEach(track => {
-					console.log(
-						'Adding localMediaStream track to peer connection',
-						track
-					);
-					peer_connection.addTrack(track, localMediaStream);
-				});
-
-			// Only one side of the peer connection should send offer
-			if (should_create_offer) {
+			peer_connection.onnegotiationneeded = e => {
+				if (!should_create_offer) return;
 				console.log('Creating RTC offer to ', peer_id);
 				peer_connection
 					.createOffer()
@@ -242,7 +203,98 @@ const MeetingScreen = () => {
 					.catch(error => {
 						console.log('Error sending offer:', error);
 					});
-			}
+			};
+
+			// Listen for 'icecandidate' events on the peer_connection
+			peer_connection.onicecandidate = e => {
+				if (e.candidate)
+					socket.emit(
+						'webrtc:relayICECandidate',
+						meeting_id,
+						peer_id,
+						e.candidate
+					);
+			};
+
+			peer_connection.ontrack = e => {
+				console.log('A track was received through peer connection');
+				console.log(e.streams);
+				// Each stream will cause 2 track event calls (one for "audio" and one for "video"), we will act only in one of them, I choose the audio track because we might have video off in some instances, then we will grab the stream object from the event only once.
+				if (e.track.kind === 'video') {
+					// It's important that you mutate the local remoteMediaStream as you set the setRemoteMediaStreams state! Otherwise you gonna always have 1 remote media stream at a time
+					Object.assign(remoteMediaStreams, {
+						// Use peer_id as a key storing that peer's streams
+						[peer_id]: [].concat(
+							remoteMediaStreams[peer_id] || [],
+							e.streams
+						),
+					});
+
+					setStateRemoteMediaStreams(
+						Object.assign({}, remoteMediaStreams)
+					);
+
+					// Audio indicator when you start receiving remote streams :D Idk why I love this feature so much
+					new Audio(CHIME).play();
+				}
+			};
+
+			// Add local track to our peer connection
+			console.log('Trying to send localMediaStream over peer connection');
+			localMediaStream &&
+				localMediaStream.getTracks().forEach(track => {
+					console.log(
+						'Adding localMediaStream track to peer connection',
+						track
+					);
+					peer_connection.addTrack(track, localMediaStream);
+				});
+
+			// Add local screen track to our peer connection if exists
+			// Add stream to all our peer connections
+			console.log(
+				`Trying to send localScreenStream over peer connection`
+			);
+			localScreenStream &&
+				localScreenStream.getTracks().forEach(track => {
+					console.log(
+						'Adding localScreenStream track to peer connection',
+						track
+					);
+					peer_connection.addTrack(track, localScreenStream);
+				});
+
+			// // Only one side of the peer connection should send offer
+			// if (!should_create_offer) return;
+			// console.log('Creating RTC offer to ', peer_id);
+			// peer_connection
+			// 	.createOffer()
+			// 	.then(localSessionDescription => {
+			// 		console.log(
+			// 			'Local offer/session description is: ',
+			// 			localSessionDescription
+			// 		);
+			// 		peer_connection
+			// 			.setLocalDescription(localSessionDescription)
+			// 			.then(() => {
+			// 				socket.emit(
+			// 					'webrtc:relaySessionDescription',
+			// 					meeting_id,
+			// 					peer_id,
+			// 					localSessionDescription
+			// 				);
+			// 				console.log('Offer setLocalDescription succeeded');
+			// 			})
+			// 			.catch(error => {
+			// 				console.error(
+			// 					'Offer setLocalDescription failed',
+			// 					error
+			// 				);
+			// 			});
+			// 	})
+			// 	.catch(error => {
+			// 		console.log('Error sending offer:', error);
+			// 	});
 		});
 
 		socket.on('webrtc:removePeer', peer_id => {
@@ -331,6 +383,8 @@ const MeetingScreen = () => {
 		console.log('SOCKET CREATED');
 	}, [stateSocket, meeting_id, userData]);
 
+	useEffect(() => {}, [stateLocalScreenStream]);
+
 	const chat_SendMsgHandler = msg => {
 		console.log('Message passed to server...');
 
@@ -372,87 +426,45 @@ const MeetingScreen = () => {
 		}
 	};
 
-	const startScreenSharing = setScreenSharing => {
-		try {
-			console.log('SCREEN SHARE');
+	const startScreenSharing = async (screenSharing, setScreenSharing) => {
+		// If doesn't exist or stopped
+		if (
+			localScreenStream === undefined ||
+			localScreenStream.getVideoTracks()[0].readyState === 'ended'
+		) {
+			try {
+				console.log('SCREEN SHARE');
+				localScreenStream =
+					await navigator.mediaDevices.getDisplayMedia();
+				setStateLocalScreenStream(localScreenStream);
 
-			// const stream =
-		} catch (error) {
-			console.error(error);
+				// Add stream to all our peer connections
+				for (let id in peerConnections) {
+					console.log(peerConnections[id]);
+					console.log(
+						`Sending screen stream through peer connect ${id}`
+					);
+					let pc = peerConnections[id];
+					localScreenStream.getTracks().forEach(track => {
+						pc.addTrack(track, localScreenStream);
+						console.log(
+							'Screen stream added to peer connection',
+							track
+						);
+					});
+					setScreenSharing(true);
+				}
+				console.log('Screen stream', localScreenStream);
+			} catch (err) {
+				console.error(err);
+			}
+		} else {
+			localScreenStream = undefined;
+			setStateLocalScreenStream(localScreenStream);
+
+			console.log('SCREEN SHARE STOPPED');
 		}
 	};
-
-	function Area(Increment, Count, Width, Height, Margin = 10) {
-		let i = 0;
-		let w = 0;
-		let h = Increment * 0.75 + Margin * 2;
-		while (i < Count) {
-			if (w + Increment > Width) {
-				w = 0;
-				h = h + Increment * 0.75 + Margin * 2;
-			}
-			w = w + Increment + Margin * 2;
-			i++;
-		}
-		if (h > Height) return false;
-		else return Increment;
-	}
-
-	function Dish() {
-		try {
-			let Margin = 10;
-			let Scenary = document.getElementById('VideoTiles__Row');
-			let Width = Scenary.offsetWidth - Margin * 2;
-			let Height = Scenary.offsetHeight - Margin * 2;
-			let Cameras = document.getElementsByClassName(
-				'VideoTiles__VideoWrapper'
-			);
-			let max = 0;
-
-			let i = 1;
-			while (i < 5000) {
-				let w = Area(i, Cameras.length, Width, Height, Margin);
-				if (w === false) {
-					max = i - 1;
-					break;
-				}
-				i++;
-			}
-
-			max = max - Margin * 2;
-			setWidth(max, Margin);
-		} catch (error) {
-			console.error(error);
-		}
-	}
-
-	function setWidth(width, margin) {
-		try {
-			let Cameras = document.getElementsByClassName(
-				'VideoTiles__VideoWrapper'
-			);
-			for (var s = 0; s < Cameras.length; s++) {
-				Cameras[s].style.width = width + 'px';
-				Cameras[s].style.margin = margin + 'px';
-				Cameras[s].style.height = width * 0.75 + 'px';
-			}
-		} catch (error) {
-			console.log(error);
-		}
-	}
-
-	/*
-	useEffect(() => {
-		// Prompt user before leaving the room, also do necessary clean up
-		// (terminate socket connection with server), the termination has to be done
-		// manually due to this being a Single Page App, since routes are completely
-		// visual, the page is never left/unloaded, hence connected sockets must be
-		// closed manually.
-		console.log('Started listening to route changes');
-	}, []);*/
-	// useEffect(() => {
-	// 	console.log('stateRemoteMediaStreams', stateRemoteMediaStreams);
-	// }, [stateRemoteMediaStreams]);
 
 	useEffect(() => {
 		// Function returned by the useEffect callback is ran on unmount (idk why i
@@ -476,63 +488,75 @@ const MeetingScreen = () => {
 	// Responsive video resizing whenever a new client enters or leaves
 	useEffect(() => {
 		Dish();
-	}, [stateLocalMediaStream, stateRemoteMediaStreams]);
+	}, [
+		stateLocalMediaStream,
+		stateLocalScreenStream,
+		stateRemoteMediaStreams,
+	]);
 
 	return (
 		<div className="MeetingScreen">
-			{meetingIdUtils.isValid(meeting_id) ? (
-				<>
-					<Prompt
-						when={!!userData}
-						message={location =>
-							`Are you sure you wanna leave your current meeting?`
-						}
-					/>
-					<div className="MeetingScreen__UpperSection">
-						{
-							<VideoTiles
-								joinees={[
-									{
-										id: stateSocket?.id,
-										userData,
-										stream: stateLocalMediaStream,
-									},
-									...Object.keys(stateRemoteMediaStreams).map(
-										id => {
-											return {
-												id,
-												userData: others[id],
-												stream: stateRemoteMediaStreams[
-													id
-												],
-											};
-										}
-									),
-								]}
-							/>
-						}
-						<ChatBox
-							username={userData?.name}
-							open={showChat}
-							messages={messages}
-							sendMessageHandler={chat_SendMsgHandler}
-							meeting_id={meeting_id}
+			{
+				/*meetingIdUtils.isValid(meeting_id) && */ stateSocket ? (
+					<>
+						<Prompt
+							when={!!userData}
+							message={location =>
+								`Are you sure you wanna leave your current meeting?`
+							}
 						/>
-					</div>
-					<BottomNavigation
-						handleMute={handleMute}
-						handleVideo={handleVideo}
-						handleToggleChat={handleToggleChat}
-						startScreenSharing={startScreenSharing}
-					/>
-				</>
-			) : (
-				<>
-					<p className="text-danger">
-						ERROR: Invalid meeting id {meeting_id}
-					</p>
-				</>
-			)}
+						<div className="MeetingScreen__UpperSection">
+							{
+								<VideoTiles
+									joinees={[
+										{
+											userData: Object.assign(
+												{},
+												userData,
+												{ id: stateSocket.id }
+											),
+											streams: [
+												stateLocalMediaStream,
+												stateLocalScreenStream,
+											],
+										},
+										...Object.keys(
+											stateRemoteMediaStreams
+										).map(id => {
+											return {
+												userData: Object.assign(
+													{},
+													others[id],
+													{ id }
+												),
+												streams:
+													stateRemoteMediaStreams[id],
+											};
+										}),
+									]}
+								/>
+							}
+							<ChatBox
+								username={userData?.name}
+								open={showChat}
+								messages={messages}
+								sendMessageHandler={chat_SendMsgHandler}
+								meeting_id={meeting_id}
+							/>
+						</div>
+						<BottomNavigation
+							handleMute={handleMute}
+							handleVideo={handleVideo}
+							handleToggleChat={handleToggleChat}
+							startScreenSharing={startScreenSharing}
+						/>
+					</>
+				) : (
+					<>
+						<p className="text-danger">Loading [{meeting_id}]</p>
+					</>
+				)
+			}
 		</div>
 	);
 };
