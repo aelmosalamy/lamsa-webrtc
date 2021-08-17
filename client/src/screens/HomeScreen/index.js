@@ -41,7 +41,7 @@ const HomeScreen = () => {
 	const handleJoinMeetingSubmit = async e => {
 		e.preventDefault();
 		const data = await fetch(
-			`http://localhost:5000/meetings/${joinMeetingId}/exists`
+			`/meetings/${joinMeetingId}/exists`
 		);
 		if (meetingIdUtils.isValid(joinMeetingId) && (await data.json())) {
 			setInvalidMeetingId(false);
