@@ -1,16 +1,20 @@
-const PORT = process.env.PORT || 5000;
+require('dotenv').config();
 
+const PORT = process.env.PORT || 5000;
 // Utilities
 require('colors');
 const path = require('path');
 
-const app = require('express')();
+const express = require('express');
+const app = express();
 const httpServer = require('http').createServer(app);
-const io = require('socket.io')(httpServer, {
-	cors: {
-		origin: 'http://localhost:3000',
-	},
-});
+
+const socket_server_config = {};
+if (process.env.NODE_ENV === 'development') {
+	socket_server_config.cors = { origin: 'http://localhost:3000' };
+}
+
+const io = require('socket.io')(httpServer, socket_server_config);
 const cors = require('cors');
 
 const { logAllSockets, logActualRooms } = require('./utils/socketLogging');
@@ -19,12 +23,25 @@ const indexRouter = require('./routers/indexRouter');
 
 // Attach io to app.locals so it is available globally
 app.locals.io = io;
+
 //app.use(express.static(path.join(__dirname, 'client', 'build')))
-app.use(
-	cors({
-		origin: 'http://localhost:3000',
-	})
-);
+if (process.env.NODE_ENV === 'production') {
+	app.use(express.static(path.join(__dirname, '..', 'client', 'build')));
+	app.get('/', function (req, res) {
+		res.sendFile(
+			path.join(__dirname, '..', 'client', 'build', 'index.html')
+		);
+	});
+}
+
+if (process.env.NODE_ENV === 'development') {
+	app.use(
+		cors({
+			origin: 'http://localhost:3000',
+		})
+	);
+}
+
 app.use('/', indexRouter);
 
 // Room events (through adapter), we will use these just for logging, since we

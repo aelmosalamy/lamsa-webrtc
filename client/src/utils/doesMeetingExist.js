@@ -1,5 +1,5 @@
 const doesRoomExist = async (id) => {
-  return await fetch(`localhost:5000/channels/${id}/exists`)
+  return await fetch(`${process.env.SERVER_URI}/channels/${id}/exists`)
 }
 
 export default doesRoomExist

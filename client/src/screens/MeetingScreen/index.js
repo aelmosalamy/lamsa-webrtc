@@ -15,7 +15,8 @@ import VideoTiles from './components/VideoTiles';
 import './styles.css';
 const CHIME = '/chime.webm';
 
-const WEBSOCKETS_SERVER = 'ws://localhost:5000';
+//const WEBSOCKETS_SERVER = process.env.WEBSOCKETS_SERVER
+console.log('WEBSOCKET', WEBSOCKETS_SERVER)
 const ICE_SERVERS = [{ urls: ['stun:stun.l.google.com:19302'] }];
 
 var peerConnections = {};
@@ -52,7 +53,9 @@ const MeetingScreen = () => {
 		// Don't run socket initialization if socket exists
 		if (stateSocket) return;
 
-		const socket = io(WEBSOCKETS_SERVER);
+    // No need to pass server URL, default is window.location, and we are
+    // running our server on the same address
+		const socket = io();
 
 		// Fires once the socket "opens" a connection with WebSockets server
 		socket.on('connect', async () => {
