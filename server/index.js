@@ -8,7 +8,7 @@ const path = require('path');
 const express = require('express');
 const app = express();
 const httpServer = require('http').createServer(app);
-console.log(process.env.NODE_ENV)
+
 const socket_server_config = {};
 if (process.env.NODE_ENV === 'development') {
 	socket_server_config.cors = { origin: 'http://localhost:3000' };

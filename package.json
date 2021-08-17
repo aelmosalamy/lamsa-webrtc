@@ -4,7 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start": "export NODE_ENV=production;cd client; yarn build; cd ..; node server/index",
+    "start": "export NODE_ENV=production;cd client; yarn install; yarn build; cd ..; node server/index",
     "dev": "nodemon server/index",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
