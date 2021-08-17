@@ -16,7 +16,7 @@ import './styles.css';
 const CHIME = '/chime.webm';
 
 //const WEBSOCKETS_SERVER = process.env.WEBSOCKETS_SERVER
-console.log('WEBSOCKET', WEBSOCKETS_SERVER)
+
 const ICE_SERVERS = [{ urls: ['stun:stun.l.google.com:19302'] }];
 
 var peerConnections = {};
