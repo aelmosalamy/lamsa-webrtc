@@ -38,7 +38,7 @@ Visit localhost:3000 to access the client, create a room and enjoy :)
 - Lack of visual indicators for mute/camera off.
 
 ## What's next?
-This was enjoyable to build. Warm up my sockets and react and play around with browsers APIs including WebRTC, WebSockets, and MediaStream; however, I am not interesting in pushing this project further for several reasons. Primarily, this project has served its purpose which was purely educational.
+This was enjoyable to build. Warm up my sockets and React while play around with browser APIs including WebRTC, WebSockets, and MediaStream; however, I am not interesting in pushing this project further for several reasons. Primarily, this project has served its purpose which was purely educational.
 
 If you are interested feel free to fork and add new cool features.
 
